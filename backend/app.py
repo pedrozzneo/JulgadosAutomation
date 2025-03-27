@@ -40,36 +40,37 @@ def log_error(classe, date, error_message):
         "error": error_message
     })
 
-def search_and_select_popup(driver, classe):
+def search_classe(driver, classe):
     try:
-        clear = WebDriverWait(driver, 10).until(
+        clearButton = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.ID, "botaoLimpar_classe"))
         )
-        clear.click()
+        clearButton.click()
+        print("-> Clicked on the 'Clear' button")
 
-        popup = WebDriverWait(driver, 10).until(
+        searchButton = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.ID, "botaoProcurar_classe"))
         )
-        popup.click()
+        searchButton.click()
+        print("-> Clicked on the 'Search' button")
 
         search_input = WebDriverWait(driver, 10).until(
             EC.visibility_of_element_located((By.ID, "classe_treeSelectFilter"))
         )
-        search_input.clear()
         search_input.send_keys(classe)
         search_input.send_keys(Keys.RETURN)
         print(f"-> Searched for the class: {classe}")
 
-        checkbox = WebDriverWait(driver, 10).until(
+        checkboxClass = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.XPATH, f"//span[contains(@class, 'checkable') and text()='{classe}']"))
         )
-        checkbox.click()
+        checkboxClass.click()
         print(f"-> Selected the checkbox for class: {classe}")
 
-        selecionar_button = WebDriverWait(driver, 10).until(
+        selecionarButton = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.XPATH, "//input[@type='button' and @value='Selecionar' and contains(@class, 'spwBotaoDefaultGrid')]"))
         )
-        selecionar_button.click()
+        selecionarButton.click()
         print("-> Clicked on the 'Selecionar' button")
 
     except Exception as e:
@@ -78,8 +79,6 @@ def search_and_select_popup(driver, classe):
 
 def fill(driver, classe, current_date_str):
     try:
-        search_and_select_popup(driver, classe)
-
         start_date = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.ID, "iddadosConsulta.dtInicio"))
         )
@@ -92,13 +91,13 @@ def fill(driver, classe, current_date_str):
         )
         end_date.clear()
         end_date.send_keys(current_date_str)
-        print(f"-> Filled the end date {current_date_str}\n")
+        print(f"-> Filled the end date: {current_date_str}\n")
 
         consultar_button = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.ID, "pbSubmit"))
         )
         consultar_button.click()
-        print(f"-> Searched\n")
+        print(f"-> Consultar button clicked\n")
 
     except Exception as e:
         log_error(classe, current_date_str, f"Error in fill function: {e}")
@@ -118,31 +117,28 @@ def download(driver, download_dir, classe, current_date_str):
         pass
 
     try:
-        all_a_tags = WebDriverWait(driver, 10).until(
+        all_a_tags = WebDriverWait(driver, 2).until(
             EC.presence_of_all_elements_located((By.XPATH, "//a[@title='Visualizar Inteiro Teor']"))
         )
         print(f"-> Found {len(all_a_tags)} links\n on this page")
-        counter = 0
 
-        for a in all_a_tags:
-            a.click()
-            driver.switch_to.window(driver.window_handles[-1])
+        if len(all_a_tags) != 0:
+            for a in all_a_tags:
+                a.click()
+                driver.switch_to.window(driver.window_handles[-1])
 
-            iframe = driver.find_element(By.TAG_NAME, "iframe")
-            driver.switch_to.frame(iframe)
+                iframe = driver.find_element(By.TAG_NAME, "iframe")
+                driver.switch_to.frame(iframe)
 
-            download_button = driver.find_element(By.ID, "download")
-            download_button.click()
-            print(f"✅ Download button clicked")
+                download_button = driver.find_element(By.ID, "download")
+                download_button.click()
+                print(f"✅ Download button clicked")
 
-            driver.switch_to.default_content()
-            driver.close()
-            driver.switch_to.window(driver.window_handles[0])
-            counter += 1
-
-        if counter != 0:
-            print(f"-> Downloaded {counter} files.")
-            move_files(download_dir, classe, current_date_str, counter)
+                driver.switch_to.default_content()
+                driver.close()
+                driver.switch_to.window(driver.window_handles[0])
+            print(f"-> Downloaded {len(all_a_tags)} files.")
+            move_files(download_dir, classe, current_date_str, len(all_a_tags))
 
     except Exception as e:
         log_error(classe, current_date_str, f"Error in download function: {e}")
@@ -166,7 +162,6 @@ def move_files(download_dir, classe, current_date_str, counter):
             if not os.path.exists(destination):
                 shutil.move(file, destination)
                 print(f"-> Moved {file} to {destination}")
-                time.sleep(2)
             else:
                 print(f"-> File {destination} already exists. Deleting it")
                 os.remove(file)
@@ -204,7 +199,7 @@ def main():
     # Start WebDriver 
     driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
     driver.get(URL)
-    driver.implicitly_wait(20)
+    driver.implicitly_wait(1)
     driver.maximize_window()
 
     # Loop through each class and date range
@@ -213,6 +208,7 @@ def main():
         for i in range(interval.days + 1):
             current_date_str = (dataInicio + timedelta(days=i)).strftime("%d/%m/%Y")
             print(f"{classe} on {current_date_str}: \n")
+            search_classe(driver, classe)
             fill(driver, classe, current_date_str)
             download(driver, download_dir, classe, current_date_str)
 
