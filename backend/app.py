@@ -174,11 +174,12 @@ def main():
     URL = "https://esaj.tjsp.jus.br/cjpg"
 
     # Extract the first column into the classes list
-    classes = ["Ação Civil de Improbidade Administrativa"]
+    classes = ["Ação Civil Coletiva", "Ação Civil de Improbidade Administrativa", "Ação Civil Pública", "Ação Popular", "Mandado de Segurança Coletivo", "Usucapião"]
     print(f"classes: {classes}")
 
-    dataInicio = datetime.strptime("27/01/2025", "%d/%m/%Y")
-    dataFinal = datetime.strptime("02/02/2025", "%d/%m/%Y")
+    dataInicio = datetime.strptime("31/01/2025", "%d/%m/%Y")
+    dataFinal = datetime.strptime("01/02/2025", "%d/%m/%Y")
+    print(f"dates: from{dataInicio} to {dataFinal}")
 
     # Calculate the interval between start_date and end_date
     interval =  dataFinal - dataInicio
@@ -193,7 +194,6 @@ def main():
     options.add_experimental_option('prefs', {
         "download.default_directory": download_dir,
         "download.prompt_for_download": False,
-        "plugins.always_open_pdf_externally": True
     })
 
     # Start WebDriver 
