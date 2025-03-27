@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Generator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>PDF GENERATOR</h1>
+    <form id="pdfForm">
+        <label for="classe">Classe:</label>
+        <input type="text" id="classe" name="classe" required><br><br>
+
+        <label for="dataInicio">Data Início:</label>
+        <input type="date" id="dataInicio" name="dataInicio" required><br><br>
+
+        <label for="dataFinal">Data Final:</label>
+        <input type="date" id="dataFinal" name="dataFinal" required>
+    </form>
+    <br>
+    <button id="generate">Generate PDF</button>
+    <p id="output"></p>
+
+    <script src="renderer.js"></script>
+</body>
+</html>

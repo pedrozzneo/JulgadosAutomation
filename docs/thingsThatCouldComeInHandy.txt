@@ -1,0 +1,17 @@
+GET INPUT FROM ELECTRON
+
+# classe = sys.argv[1]  # First argument: "Classe"
+# dataInicio = sys.argv[2]  # Second argument: "Data Início"
+# dataFinal = sys.argv[3]  # Third argument: "Data Final"
+
+# print(f"Received input - Classe: {classe}, Data Início: {dataInicio}, Data Final: {dataFinal}")
+
+# Commented out the code for reading the Excel file
+# excel_path = r"C:\Users\nikao\Desktop\TJ\TJ_Project\Classe e assunto do processo.xlsx"
+# df = pd.read_excel(excel_path)
+
+# Extract the third column starting from the second element into the classes list
+# classes = df.iloc[0:, 2].tolist()
+# print(f"classes: {classes}")
+
+# Directly specify the elements of the `classes` array
