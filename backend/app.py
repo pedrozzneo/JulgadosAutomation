@@ -28,6 +28,29 @@ month_dict = {
     "12": "Dezembro"
 }
 
+def check_downloaded_files(download_dir, counter, classe, current_date_str, attempts):
+    try:
+        # Check if the number of files in the download directory matches the counter
+        files = [f for f in os.listdir(download_dir) if os.path.isfile(os.path.join(download_dir, f))]
+
+        print(f"-> Found {len(files)} files in the download directory")
+        print(f"-> Expected {counter} files")
+        
+        if len(files) == counter:
+            print(f"-> Downloaded {counter} files.")
+        if len(files) != counter and attempts < 2:
+            print("Giving it more time to download...")
+            time.sleep(5)
+            attempts += 1
+            check_downloaded_files(download_dir, counter, classe, current_date_str, attempts)
+        if len(files) != counter and attempts >= 2:
+            print(f"⚠️ Expected {counter} files, but found {len(files)} files")
+            log_error(classe, current_date_str, f"Expected {counter} files, but found {len(files)} files.")
+
+    except Exception as e:
+        log_error(classe, current_date_str, f"Error in check_downloaded_files function: {e}")
+        print(f"Error while checking downloaded files: {e}")
+
 def get_month_name(date_str):
     month_num = date_str[3:5]
     return month_dict.get(month_num, "Invalid month")
@@ -122,6 +145,7 @@ def download(driver, download_dir, classe, current_date_str):
         )
         print(f"-> Found {len(all_a_tags)} links\n on this page")
 
+        counter = 0 # The reason to use counter is because some links might be invalid, and it would affect the moved files
         if len(all_a_tags) != 0:
             for a in all_a_tags:
                 a.click()
@@ -133,37 +157,49 @@ def download(driver, download_dir, classe, current_date_str):
                 download_button = driver.find_element(By.ID, "download")
                 download_button.click()
                 print(f"✅ Download button clicked")
+                counter += 1
 
                 driver.switch_to.default_content()
                 driver.close()
                 driver.switch_to.window(driver.window_handles[0])
-            print(f"-> Downloaded {len(all_a_tags)} files.")
-            move_files(download_dir, classe, current_date_str, len(all_a_tags))
+
+            check_downloaded_files(download_dir, counter, classe, current_date_str, 0)
+            move_files(download_dir, classe, current_date_str, counter)
 
     except Exception as e:
         log_error(classe, current_date_str, f"Error in download function: {e}")
         print(f"Error while downloading files: {e}")
+        driver.switch_to.default_content()
+        driver.close()
+        driver.switch_to.window(driver.window_handles[0])
 
 def move_files(download_dir, classe, current_date_str, counter):
     try:
         # Create the directory for the current date and class if it doesn't exist
-        current_date_dir = os.path.join(download_dir, str(classe), current_date_str.replace("/", "-"))
+        month_name = get_month_name(current_date_str)
+        current_date_dir = os.path.join(download_dir, str(classe), current_date_str[:5], month_name, current_date_str[2:4])
         if not os.path.exists(current_date_dir):
             os.makedirs(current_date_dir)
-            time.sleep(2)
 
         # Get the most recent downloaded files based on the counter
         files = [os.path.join(download_dir, f) for f in os.listdir(download_dir) if os.path.isfile(os.path.join(download_dir, f))]
         most_recent_files = sorted(files, key=os.path.getctime, reverse=True)[:counter]
 
-        # Move the most recent files to the current date directory
-        for file in most_recent_files:
-            destination = os.path.join(current_date_dir, os.path.basename(file))
+        # Move and rename the most recent files to the current date directory
+        for i, file in enumerate(most_recent_files, start=1):
+            # Extract original file extension
+            file_ext = os.path.splitext(file)[1]  # Keeps .pdf or other extensions
+
+            # Construct the new filename
+            new_filename = f"{classe}_{current_date_str}_{i}{file_ext}"
+            destination = os.path.join(current_date_dir, new_filename)
+
+            # Move the file with the new name
             if not os.path.exists(destination):
                 shutil.move(file, destination)
-                print(f"-> Moved {file} to {destination}")
+                print(f"-> Moved {file} to {destination} (Renamed)")
             else:
-                print(f"-> File {destination} already exists. Deleting it")
+                print(f"-> File {destination} already exists. Deleting {file}")
                 os.remove(file)
 
     except Exception as e:
@@ -174,11 +210,14 @@ def main():
     URL = "https://esaj.tjsp.jus.br/cjpg"
 
     # Extract the first column into the classes list
-    classes = ["Ação Civil Coletiva", "Ação Civil de Improbidade Administrativa", "Ação Civil Pública", "Ação Popular", "Mandado de Segurança Coletivo", "Usucapião"]
+    classes = ["Ação Civil Coletiva", "Ação Civil de Improbidade Administrativa", "Ação Civil Pública", "Ação Popular", "Mandado de Segurança Coletivo"]
+    # classes = ["Ação Civil de Improbidade Administrativa"]
     print(f"classes: {classes}")
 
-    dataInicio = datetime.strptime("31/01/2025", "%d/%m/%Y")
-    dataFinal = datetime.strptime("01/02/2025", "%d/%m/%Y")
+    dataInicio = datetime.strptime("07/01/2025", "%d/%m/%Y")
+    dataFinal = datetime.strptime("26/03/2025", "%d/%m/%Y")
+    # dataInicio = datetime.strptime("17/01/2025", "%d/%m/%Y")
+    # dataFinal = datetime.strptime("20/01/2025", "%d/%m/%Y")
     print(f"dates: from{dataInicio} to {dataFinal}")
 
     # Calculate the interval between start_date and end_date
@@ -197,10 +236,14 @@ def main():
     })
 
     # Start WebDriver 
+    options.add_argument("--headless")  # Run in headless mode
+    options.add_argument("--disable-gpu")  # Disable GPU acceleration
+    options.add_argument("--window-size=1920,1080")  # Set window size for headless mode
+
     driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
     driver.get(URL)
     driver.implicitly_wait(1)
-    driver.maximize_window()
+    # driver.maximize_window()  #Commented out as requested
 
     # Loop through each class and date range
     for classe in classes:
@@ -211,6 +254,8 @@ def main():
             search_classe(driver, classe)
             fill(driver, classe, current_date_str)
             download(driver, download_dir, classe, current_date_str)
+
+    print(error_log)
 
 if __name__ == "__main__":
     main()
