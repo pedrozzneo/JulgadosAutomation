@@ -79,6 +79,41 @@ def search_classe(driver, classe):
 
 def fill(driver, classe, current_date_str):
     try:
+        search_classe(driver, classe)
+
+        if(classe == "Usucapião"):
+            clearButton = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.ID, "botaoLimpar_assunto"))
+            )
+            clearButton.click()
+            print("-> Clicked on the 'Clear' button for 'assunto'")
+
+            searchButton = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.ID, "botaoProcurar_assunto"))
+            )
+            searchButton.click()
+            print("-> Clicked on the 'Search' button for 'assunto'")
+
+            search_input = WebDriverWait(driver, 10).until(
+                EC.visibility_of_element_located((By.ID, "assunto_treeSelectFilter"))
+            )
+            search_input.send_keys("especial coletiva")
+            search_input.send_keys(Keys.RETURN)
+            print("-> Searched for 'especial coletiva' in 'assunto'")
+
+            checkboxAssunto = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.XPATH, "//span[@id='assunto_tree_node_10460' and contains(@class, 'checkable')]"))
+            )
+            checkboxAssunto.click()
+            print("-> Selected the checkbox for 'Usucapião Especial Coletiva'")
+
+            selecionarButtonAssunto = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.XPATH, "//div[@id='assunto_treeSelectContainer']//input[@type='button' and @value='Selecionar' and contains(@class, 'spwBotaoDefaultGrid')]"))
+            )
+            print("-> Found the 'Selecionar' button for 'assunto'")
+            selecionarButtonAssunto.click()
+            print("-> Clicked on the 'Selecionar' button for 'assunto'")
+
         start_date = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.ID, "iddadosConsulta.dtInicio"))
         )
@@ -112,7 +147,6 @@ def download(driver, download_dir, classe, current_date_str):
         if no_results_message:
             print("No results found for the search.")
             return
-        
     except Exception:
         pass
 
@@ -146,6 +180,10 @@ def download(driver, download_dir, classe, current_date_str):
 
 def move_files(download_dir, classe, current_date_str, counter):
     try:
+        # Being more specific with this particular example
+        if(classe == "Usucapião"):
+            classe = "Usucapião Especial Coletiva"
+
         # Create the directory for the current date and class if it doesn't exist
         current_date_dir = os.path.join(download_dir, str(classe), current_date_str.replace("/", "-"))
         if not os.path.exists(current_date_dir):
@@ -174,11 +212,12 @@ def main():
     URL = "https://esaj.tjsp.jus.br/cjpg"
 
     # Extract the first column into the classes list
-    classes = ["Ação Civil Coletiva", "Ação Civil de Improbidade Administrativa", "Ação Civil Pública", "Ação Popular", "Mandado de Segurança Coletivo", "Usucapião"]
+    # classes = ["Usucapião", "Ação Civil Coletiva", "Ação Civil de Improbidade Administrativa", "Ação Civil Pública", "Ação Popular", "Mandado de Segurança Coletivo"]
+    classes = ["Usucapião"]
     print(f"classes: {classes}")
 
-    dataInicio = datetime.strptime("31/01/2025", "%d/%m/%Y")
-    dataFinal = datetime.strptime("01/02/2025", "%d/%m/%Y")
+    dataInicio = datetime.strptime("01/01/2025", "%d/%m/%Y")
+    dataFinal = datetime.strptime("28/03/2025", "%d/%m/%Y")
     print(f"dates: from{dataInicio} to {dataFinal}")
 
     # Calculate the interval between start_date and end_date
@@ -208,7 +247,6 @@ def main():
         for i in range(interval.days + 1):
             current_date_str = (dataInicio + timedelta(days=i)).strftime("%d/%m/%Y")
             print(f"{classe} on {current_date_str}: \n")
-            search_classe(driver, classe)
             fill(driver, classe, current_date_str)
             download(driver, download_dir, classe, current_date_str)
 
