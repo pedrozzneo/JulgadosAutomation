@@ -1,0 +1,6 @@
+see if its really necessary creating the downoad dir, I dont think so cause when the pdfs are moved, it has its address, and if there isnt any, they will create on their own
+
+
+I need to see the other pages for download
+
+after every error log, reset

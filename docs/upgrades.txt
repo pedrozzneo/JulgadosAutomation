@@ -6,3 +6,9 @@ also wait for everything to load
 <a name="2" title="Próxima página" class="esajLinkLogin">
 				&gt;
 			</a>
+
+
+  # After downloading the file, count its pages
+                # downloaded_file_path = os.path.join(download_dir, os.listdir(download_dir)[-1])  # Assuming the last file is the downloaded one
+                # page_count = count_pdf_pages(downloaded_file_path)
+                # print(f"✅ PDF has {page_count} pages")

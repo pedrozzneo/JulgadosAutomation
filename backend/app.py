@@ -9,8 +9,9 @@ import time
 import os
 from datetime import datetime, timedelta
 import shutil
+import PyPDF2
+import re
 
-# Global list to store error logs
 error_log = []
 
 month_dict = {
@@ -29,19 +30,26 @@ month_dict = {
 }
 
 def get_month_name(date_str):
+    # Converts month number to month name
     month_num = date_str[3:5]
     return month_dict.get(month_num, "Invalid month")
 
-def log_error(classe, date, error_message):
-    """Logs an error with details about the class, date, and error message."""
-    error_log.append({
-        "class": classe,
-        "date": date,
-        "error": error_message
-    })
+def log_error(classe, date):
+    # Logs an error with details about the class and date.
+    error_log.append(f"Class: {classe}, Date: {date}")
 
-def search_classe(driver, classe):
+def display_error_log():
+    # Displays the error log in a numbered format.
+    if not error_log:
+        print("No errors logged.")
+    else:
+        print("\nError Log:")
+        for i, error in enumerate(error_log, start=1):
+            print(f"{i}- {error}")
+
+def search_classe(driver, classe, current_date_str):
     try:
+        # All steps to fill the "Classe" field
         clearButton = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.ID, "botaoLimpar_classe"))
         )
@@ -73,14 +81,8 @@ def search_classe(driver, classe):
         selecionarButton.click()
         print("-> Clicked on the 'Selecionar' button")
 
-    except Exception as e:
-        log_error(classe, None, f"Error in search_and_select_popup: {e}")
-        print(f"Error while searching and selecting the class '{classe}': {e}")
 
-def fill(driver, classe, current_date_str):
-    try:
-        search_classe(driver, classe)
-
+        # Only for "Usucapião" class We gotta fill the "assunto" field too
         if(classe == "Usucapião"):
             clearButton = WebDriverWait(driver, 10).until(
                 EC.element_to_be_clickable((By.ID, "botaoLimpar_assunto"))
@@ -113,70 +115,84 @@ def fill(driver, classe, current_date_str):
             print("-> Found the 'Selecionar' button for 'assunto'")
             selecionarButtonAssunto.click()
             print("-> Clicked on the 'Selecionar' button for 'assunto'")
+    
+    except:
+        log_error(classe, current_date_str)
+        print(f"Error while searching and selecting the class '{classe}'.")
 
+def fill(driver, classe, current_date_str):
+    try:
+
+        search_classe(driver, classe, current_date_str)
         start_date = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.ID, "iddadosConsulta.dtInicio"))
         )
         start_date.clear()
         start_date.send_keys(current_date_str)
-        print(f"-> Filled the start date: {current_date_str}\n")
+        print(f"-> Filled the start date: {current_date_str}")
 
         end_date = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.ID, "iddadosConsulta.dtFim"))
         )
         end_date.clear()
         end_date.send_keys(current_date_str)
-        print(f"-> Filled the end date: {current_date_str}\n")
+        print(f"-> Filled the end date: {current_date_str}")
 
         consultar_button = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.ID, "pbSubmit"))
         )
         consultar_button.click()
-        print(f"-> Consultar button clicked\n")
+        print(f"-> Consultar button clicked")
 
-    except Exception as e:
-        log_error(classe, current_date_str, f"Error in fill function: {e}")
-        print(f"Error while filling the form or searching: {e}")
+    except:
+        log_error(classe, current_date_str)
+        print(f"Error while filling the form or searching.")
 
+def extract_numbers(texto):
+    padrao = r"Resultados (\d+) a (\d+) de (\d+)"
+    match = re.search(padrao, texto)
+    
+    if match:
+        primeiro_numero = int(match.group(2))
+        ultimo_numero = int(match.group(3))
+        return primeiro_numero, ultimo_numero
+    else:
+        log_error("Regex", "Failed to extract numbers")
+        return None, None
+    
 def download(driver, download_dir, classe, current_date_str):
-    # Check if there are no results for the search, this is a faster way to evaluate and move on with the program
     try:
-        no_results_message = WebDriverWait(driver, 1).until(
-            EC.presence_of_element_located((By.XPATH, "//div[contains(@class, 'aviso espacamentoCimaBaixo centralizado fonteNegrito') and contains(text(), 'Não foi encontrado nenhum resultado correspondente à busca realizada.')]"))
-        )
-        if no_results_message:
-            print("No results found for the search.")
-            return
-    except Exception:
-        pass
+        # Check if there are no results for the search without throwing an error
+        try:
+            no_results_message = driver.find_element(By.XPATH, "//div[contains(@class, 'aviso espacamentoCimaBaixo centralizado fonteNegrito') and contains(text(), 'Não foi encontrado nenhum resultado correspondente à busca realizada.')]")
+            if no_results_message:
+                print("-> No results found for the search.")
+                return
+        except Exception:
+            pass
 
-    try:
-        all_a_tags = WebDriverWait(driver, 2).until(
+        # Otherwise...
+        all_a_tags = WebDriverWait(driver, 10).until(
             EC.presence_of_all_elements_located((By.XPATH, "//a[@title='Visualizar Inteiro Teor']"))
         )
-        print(f"-> Found {len(all_a_tags)} links\n on this page")
+        print(f"-> Found {len(all_a_tags)} links")
 
-        if len(all_a_tags) != 0:
-            for a in all_a_tags:
-                a.click()
-                driver.switch_to.window(driver.window_handles[-1])
+        # Locate the element containing the results information
+        results_element = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.XPATH, "//td[@bgcolor='#EEEEEE' and contains(text(), 'Resultados')]"))
+        )
+        print(f"-> Found results element: {results_element.text}")
+        numbers = extract_numbers(results_element.text)
+        print(f"-> First number: {numbers[0]}, Last number: {numbers[1]}")
 
-                iframe = driver.find_element(By.TAG_NAME, "iframe")
-                driver.switch_to.frame(iframe)
-
-                download_button = driver.find_element(By.ID, "download")
-                download_button.click()
-                print(f"✅ Download button clicked")
-
-                driver.switch_to.default_content()
-                driver.close()
-                driver.switch_to.window(driver.window_handles[0])
-            print(f"-> Downloaded {len(all_a_tags)} files.")
-            move_files(download_dir, classe, current_date_str, len(all_a_tags))
-
-    except Exception as e:
-        log_error(classe, current_date_str, f"Error in download function: {e}")
-        print(f"Error while downloading files: {e}")
+        if len(all_a_tags) != numbers[0]:
+            print(f"-> Mismatch: Found {len(all_a_tags)} links, but expected {numbers[0]}.")
+            log_error(classe, current_date_str)
+            return
+    
+    except:
+        log_error(classe, current_date_str)
+        print(f"Error while downloading files.")
 
 def move_files(download_dir, classe, current_date_str, counter):
     try:
@@ -188,7 +204,6 @@ def move_files(download_dir, classe, current_date_str, counter):
         current_date_dir = os.path.join(download_dir, str(classe), current_date_str.replace("/", "-"))
         if not os.path.exists(current_date_dir):
             os.makedirs(current_date_dir)
-            time.sleep(2)
 
         # Get the most recent downloaded files based on the counter
         files = [os.path.join(download_dir, f) for f in os.listdir(download_dir) if os.path.isfile(os.path.join(download_dir, f))]
@@ -204,29 +219,31 @@ def move_files(download_dir, classe, current_date_str, counter):
                 print(f"-> File {destination} already exists. Deleting it")
                 os.remove(file)
 
-    except Exception as e:
-        log_error(classe, current_date_str, f"Error in move_files function: {e}")
-        print(f"Error while moving files: {e}")
+    except:
+        log_error(classe, current_date_str)
+        print(f"Error while moving files.")
 
 def main():
     URL = "https://esaj.tjsp.jus.br/cjpg"
 
-    # Extract the first column into the classes list
-    # classes = ["Usucapião", "Ação Civil Coletiva", "Ação Civil de Improbidade Administrativa", "Ação Civil Pública", "Ação Popular", "Mandado de Segurança Coletivo"]
-    classes = ["Usucapião"]
+    # List all classes to be searched
+    classes = ["Ação Civil Pública", "Ação Civil de Improbidade Administrativa", "Ação Civil Coletiva", "Ação Popular", "Mandado de Segurança Coletivo", "Usucapião"]
     print(f"classes: {classes}")
 
     dataInicio = datetime.strptime("01/01/2025", "%d/%m/%Y")
-    dataFinal = datetime.strptime("28/03/2025", "%d/%m/%Y")
-    print(f"dates: from{dataInicio} to {dataFinal}")
+    #dataInicio = datetime.strptime("09/01/2025", "%d/%m/%Y")
+    dataFinal = datetime.now()
+    #dataFinal = datetime.strptime("09/01/2025", "%d/%m/%Y")
+    print(f"dates: from {dataInicio} to {dataFinal}")
 
     # Calculate the interval between start_date and end_date
-    interval =  dataFinal - dataInicio
+    interval = dataFinal - dataInicio
+    print(interval.days)
 
     # Temporary download directory before being moved to the specific date folder
-    download_dir = r"C:\Users\nikao\Desktop\TJ\docs\pdfs"
-    if not os.path.exists(download_dir):
-        os.makedirs(download_dir)
+    download_dir = r"C:\Users\nikao\Desktop\Julgados"
+    # if not os.path.exists(download_dir):
+    #     os.makedirs(download_dir)
 
     # Set Chrome options
     options = webdriver.ChromeOptions()
@@ -235,10 +252,9 @@ def main():
         "download.prompt_for_download": False,
     })
 
-    # Start WebDriver 
+    # Start WebDriver
     driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
     driver.get(URL)
-    driver.implicitly_wait(1)
     driver.maximize_window()
 
     # Loop through each class and date range
@@ -246,9 +262,12 @@ def main():
         # Loop through each date in the range
         for i in range(interval.days + 1):
             current_date_str = (dataInicio + timedelta(days=i)).strftime("%d/%m/%Y")
-            print(f"{classe} on {current_date_str}: \n")
+            print(f"\n{classe.upper()} ON {current_date_str.upper()}: \n")
             fill(driver, classe, current_date_str)
             download(driver, download_dir, classe, current_date_str)
+
+    # Display all errors
+    display_error_log()
 
 if __name__ == "__main__":
     main()

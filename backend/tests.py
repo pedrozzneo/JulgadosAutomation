@@ -1,30 +1,16 @@
-# filepath: c:\Users\nikao\Desktop\TJ\TJ_Project\backend\tests.py
-import unittest
-from app import fill, download, move_files  # Adjust the import based on your app.py functions
+import re
 
-class TestBackendFunctions(unittest.TestCase):
-
-    def setUp(self):
-        # Set up any necessary test data or state
-        self.classe = "Ação Civil Coletiva"
-        self.current_date_str = "01/02/2025"
-        self.download_dir = "path/to/download"  # Adjust the path as needed
-
-    def test_fill_function(self):
-        # Test the fill function
-        result = fill(self.classe, self.current_date_str)
-        self.assertIsNotNone(result)  # Adjust the assertion based on expected behavior
-
-    def test_download_function(self):
-        # Test the download function
-        result = download(self.download_dir, self.classe, self.current_date_str)
-        self.assertTrue(result)  # Adjust the assertion based on expected behavior
-
-    def test_move_files_function(self):
-        # Test the move_files function
-        counter = 0  # Example counter
-        result = move_files(self.download_dir, self.classe, self.current_date_str, counter)
-        self.assertIsNone(result)  # Adjust the assertion based on expected behavior
-
-if __name__ == '__main__':
-    unittest.main()
+def extract_numbers(texto):
+    padrao = r"resultades (\d+) a (\d+) de (\d+)"
+    match = re.search(padrao, texto)
+    
+    if match:
+        primeiro_numero = int(match.group(1))
+        ultimo_numero = int(match.group(3))
+        return primeiro_numero, ultimo_numero
+    else:
+        return None, None  # Return a tuple with None values if no match is found
+    
+texto = "resultades 1 a 10 de 100"
+numbers = extract_numbers(texto)
+print(numbers[0], numbers[1])  
