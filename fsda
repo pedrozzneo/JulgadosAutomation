@@ -1,0 +1,29 @@
+[33mcommit 362a9966d8379201f78d64f1b2fdf461cde1c11d[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: pedrozzneo@gmail.com <pedrozzneo@gmail.com>
+Date:   Mon Apr 7 12:31:14 2025 -0300
+
+    temp
+
+[33mcommit e0f2930585d0c1dc25b1da1d891e44198adb9303[m[33m ([m[1;31morigin/main[m[33m)[m
+Author: pedrozzneo@gmail.com <pedrozzneo@gmail.com>
+Date:   Sat Mar 29 10:52:55 2025 -0300
+
+    now included usucapiao especial coletivo
+
+[33mcommit a78884d307f038035b8e2045ff35873d624950b9[m
+Author: pedrozzneo@gmail.com <pedrozzneo@gmail.com>
+Date:   Thu Mar 27 18:41:03 2025 -0300
+
+    removed the plugins.always_open_pdf_externally: True as thats not the way pdfs are being saved. Also updated the classes and the dates
+
+[33mcommit f7a6464184995225764a48e687c6b2d966669554[m
+Author: pedrozzneo@gmail.com <pedrozzneo@gmail.com>
+Date:   Thu Mar 27 18:17:21 2025 -0300
+
+    adapted the names to be more comprehensive, improved performance
+
+[33mcommit bb2ca9ef0790024143d17b85d3b9634c949d113e[m
+Author: pedrozzneo@gmail.com <pedrozzneo@gmail.com>
+Date:   Thu Mar 27 13:35:19 2025 -0300
+
+    first structured commit
