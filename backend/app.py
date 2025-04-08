@@ -115,29 +115,34 @@ def download(driver, download_dir, classe, current_date_str):
             log_error(classe, current_date_str, context)
             return
         
-        for a in all_a_tags:
-            a.click()
-            driver.switch_to.window(driver.window_handles[-1])
+        if len(all_a_tags) != 0:
+            for a in all_a_tags:
+                a.click()
+                driver.switch_to.window(driver.window_handles[-1])
 
-            iframe = driver.find_element(By.TAG_NAME, "iframe")
-            driver.switch_to.frame(iframe)
+                iframe = WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.TAG_NAME, "iframe"))
+                )
+                driver.switch_to.frame(iframe)
 
-            download_button = driver.find_element(By.ID, "download")
-            download_button.click()
-            print(f"✅ Download button clicked")
+                download_button = WebDriverWait(driver, 10).until(
+                    EC.element_to_be_clickable((By.ID, "download"))
+                )
+                download_button.click()
+                print(f"✅ Download button clicked")
+                time.sleep(2)
 
-            # Wait for the file to be downloaded
+            # # Wait for the file to be downloaded
             # if not is_file_downloaded(download_dir, timeout=30, file_extension=".pdf"):
             #     context = "is_file_downloaded"
             #     print("-> File download timed out.")
             #     log_error(classe, current_date_str, context)
 
-            driver.switch_to.default_content()
-            driver.close()
-            driver.switch_to.window(driver.window_handles[0])
-        print(f"-> Downloaded {len(all_a_tags)} files.")
-        move_files(download_dir, classe, current_date_str, len(all_a_tags))
-    
+                driver.switch_to.default_content()
+                driver.close()
+                driver.switch_to.window(driver.window_handles[0])
+                print(f"-> Downloaded {len(all_a_tags)} files.")
+                move_files(download_dir, classe, current_date_str, len(all_a_tags))
     except:
         context = "download"
         log_error(classe, current_date_str, context)
