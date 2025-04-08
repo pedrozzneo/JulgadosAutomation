@@ -4,3 +4,25 @@ see if its really necessary creating the downoad dir, I dont think so cause when
 I need to see the other pages for download
 
 after every error log, reset
+
+
+month_dict = {
+    "01": "Janeiro",
+    "02": "Fevereiro",
+    "03": "Março",
+    "04": "Abril",
+    "05": "Maio",
+    "06": "Junho",
+    "07": "Julho",
+    "08": "Agosto",
+    "09": "Setembro",
+    "10": "Outubro",
+    "11": "Novembro",
+    "12": "Dezembro"
+}
+def get_month_name(date_str):
+    # Converts month number to month name
+    month_num = date_str[3:5]
+    return month_dict.get(month_num, "Invalid month")
+
+Sum all error logs
