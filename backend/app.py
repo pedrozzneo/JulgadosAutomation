@@ -33,7 +33,6 @@ def main():
 
     # Calculate the interval between start_date and end_date
     interval = endDate - startingDate
-    print(interval.days)
 
     # Temporary download directory before being moved to the specific date folder
     download_dir = r"C:\Users\nikao\Desktop\Julgados"

@@ -115,7 +115,7 @@ def fill_assunto(classe, driver):
     
 def fill_filters(driver, classe, current_date_str):
     fill_classe(driver, classe, current_date_str)
-    fill_date(driver, current_date_str)
+    #fill_date(driver, current_date_str)
     if(classe == "Usucapião"): # Only for "Usucapião" class We gotta fill out the "assunto" field too
         fill_assunto(classe, driver) 
     submit(driver)
