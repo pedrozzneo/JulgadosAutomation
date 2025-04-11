@@ -27,7 +27,7 @@ def main():
     classes = ["Ação Civil Pública", "Ação Civil de Improbidade Administrativa", "Ação Civil Coletiva", "Ação Popular", "Mandado de Segurança Coletivo", "Usucapião"]
     print(f"classes: {classes}")
 
-    startingDate = datetime.strptime("07/01/2025", "%d/%m/%Y")
+    startingDate = datetime.strptime("06/01/2025", "%d/%m/%Y")
     endDate = datetime.now()
     print(f"dates: from {startingDate} to {endDate}")
 
@@ -45,6 +45,12 @@ def main():
         "download.default_directory": download_dir,
         "download.prompt_for_download": False,
     })
+    options.add_argument("--headless")
+    # options.add_argument("--disable-gpu")
+    # options.add_argument("--window-size=1920,1080")
+    # options.add_argument("--disable-extensions")
+    # options.add_argument("--no-sandbox")
+    # options.add_argument("--disable-dev-shm-usage")
 
     # Start WebDriver
     driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
@@ -58,7 +64,7 @@ def main():
             date = (startingDate + timedelta(days=i)).strftime("%d/%m/%Y")
             print(f"\n{classe.upper()} ON {date.upper()}: \n")
             
-            # fill out all the fillters
+            # Fill out all the fillters
             fill_filters.fill_filters(driver, classe, date)
             
             # Check if there are links for download before starting the whole process
