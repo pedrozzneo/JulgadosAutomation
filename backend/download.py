@@ -1,6 +1,7 @@
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
 import time
 import re
 import os
@@ -8,17 +9,21 @@ import error as error
 
 files_properly_downloaded = 0
 
-def get_download_links(driver, previousValue, classe, date):
+def get_download_links(driver, previousNames, classe, date):
     def valid_links_changed(d):
         try:
-            downloadLinks = WebDriverWait(d, 10).until(
+            if previousNames:
+                print("Previous:", previousNames)
+
+            currentLinks = WebDriverWait(d, 10).until(
                 EC.presence_of_all_elements_located((By.XPATH, "//a[@title='Visualizar Inteiro Teor']"))
             )
+            print(f"current links: {currentLinks} ")
 
-            current_names = [link.get_attribute("name") for link in downloadLinks]
-            previous_names = [link.get_attribute("name") for link in previousValue] if previousValue else []
+            currentNames = [link.get_attribute("name") for link in currentLinks]
+            print("Current:", currentNames)
 
-            if previous_names in current_names:
+            if previousNames in currentNames:
                 print("🟡 Link ainda presente, nada novo.")
                 return False
             else:
@@ -26,14 +31,14 @@ def get_download_links(driver, previousValue, classe, date):
                 return True
 
         except Exception as e:
-            print(f"🔴 Erro ao verificar os links: {e}")
+            print(f"🔴 Erro ao verificar os links")
             return False
 
     try:
-        # Give the driver some time to fully load the message and makes sure its different from the previous one
-        WebDriverWait(driver, 30).until(valid_links_changed)
+        # ✅ Pass a lambda that calls your condition function properly
+        WebDriverWait(driver, 80).until(lambda d: valid_links_changed(d))
 
-        # Locate all the download links
+        # Locate all the download links again (they might be stale otherwise)
         downloadLinks = WebDriverWait(driver, 10).until(
             EC.presence_of_all_elements_located((By.XPATH, "//a[@title='Visualizar Inteiro Teor']"))
         )
@@ -41,10 +46,10 @@ def get_download_links(driver, previousValue, classe, date):
 
         return downloadLinks
 
-    except:
-        error.log_error(classe, date, context="Unable to locate download links")
+    except TimeoutException:
+        print("🔴 Timeout: No new valid links appeared within the wait period.")
+        error.log_error(classe, date, context="Timeout waiting for new download links")
         return []
-
 
 def get_expected_downloads(driver, previousValue):
     def valid_text_changed(d):
@@ -187,20 +192,24 @@ def download(driver, download_dir, classe, date):
     downloadLinks = None
     # This is an array cause the first value is whats useful and the second is just to compare whether the text changed or not
     expectedDownloads = [None, None]
+    previousNames = None
     
     while True:
-        downloadLinks = get_download_links(driver, downloadLinks, classe, date)
+        downloadLinks = get_download_links(driver, previousNames, classe, date)
+        previousNames = [link.get_attribute("name") for link in downloadLinks] if downloadLinks else []
+
         expectedDownloads = get_expected_downloads(driver, expectedDownloads[1])
 
         found_matches_expected(downloadLinks, expectedDownloads[0], classe, date)
 
-        download_each_link(driver, downloadLinks, download_dir, classe, date)
+        time.sleep(40)
+        #download_each_link(driver, downloadLinks, download_dir, classe, date)
 
         if more_download_links_pages(driver): 
             # Resets some stuffs
             continue
 
-        # Just exit the whole loop if there aren't any other download link pages
+        # Just exit the whole loop if there isn't any other download link pages
         break
 
 

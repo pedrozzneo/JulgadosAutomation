@@ -27,7 +27,7 @@ def main():
     classes = ["Ação Civil Pública", "Ação Civil de Improbidade Administrativa", "Ação Civil Coletiva", "Ação Popular", "Mandado de Segurança Coletivo", "Usucapião"]
     print(f"classes: {classes}")
 
-    startingDate = datetime.strptime("06/01/2025", "%d/%m/%Y")
+    startingDate = datetime.strptime("11/02/2025", "%d/%m/%Y")
     endDate = datetime.now()
     print(f"dates: from {startingDate} to {endDate}")
 
@@ -45,12 +45,7 @@ def main():
         "download.default_directory": download_dir,
         "download.prompt_for_download": False,
     })
-    options.add_argument("--headless")
-    # options.add_argument("--disable-gpu")
-    # options.add_argument("--window-size=1920,1080")
-    # options.add_argument("--disable-extensions")
-    # options.add_argument("--no-sandbox")
-    # options.add_argument("--disable-dev-shm-usage")
+    #options.add_argument("--headless")
 
     # Start WebDriver
     driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
