@@ -10,15 +10,19 @@ import error as error
 files_properly_downloaded = 0
 
 def get_download_links(driver, previousNames, classe, date):
-    def valid_links_changed(d):
+    def wait_for_updated_links(driver):
+        if valid_links_changed(driver):
+            return driver.find_elements(By.XPATH, "//a[@title='Visualizar Inteiro Teor']")
+        return False  # Returning False tells WebDriverWait to keep waiting
+        
+    def valid_links_changed(driver):
         try:
             if previousNames:
                 print("Previous:", previousNames)
 
-            currentLinks = WebDriverWait(d, 10).until(
+            currentLinks = WebDriverWait(driver, 10).until(
                 EC.presence_of_all_elements_located((By.XPATH, "//a[@title='Visualizar Inteiro Teor']"))
             )
-            print(f"current links: {currentLinks} ")
 
             currentNames = [link.get_attribute("name") for link in currentLinks]
             print("Current:", currentNames)
@@ -31,7 +35,7 @@ def get_download_links(driver, previousNames, classe, date):
                 return True
 
         except Exception as e:
-            print(f"🔴 Erro ao verificar os links")
+            print("🟡 Link ainda nao mudou")
             return False
 
     try:
@@ -39,9 +43,7 @@ def get_download_links(driver, previousNames, classe, date):
         WebDriverWait(driver, 80).until(lambda d: valid_links_changed(d))
 
         # Locate all the download links again (they might be stale otherwise)
-        downloadLinks = WebDriverWait(driver, 10).until(
-            EC.presence_of_all_elements_located((By.XPATH, "//a[@title='Visualizar Inteiro Teor']"))
-        )
+        downloadLinks = WebDriverWait(driver, 80).until(wait_for_updated_links)
         print(f"-> Found links: {len(downloadLinks)} ")
 
         return downloadLinks
@@ -50,6 +52,17 @@ def get_download_links(driver, previousNames, classe, date):
         print("🔴 Timeout: No new valid links appeared within the wait period.")
         error.log_error(classe, date, context="Timeout waiting for new download links")
         return []
+
+def get_link_names(downloadLinks):
+    linkNames = []  # Reset previous names for the new set of links
+    if downloadLinks:
+        for link in downloadLinks:
+            try:
+                name = link.get_attribute("name")
+                linkNames.append(name)
+            except Exception as e:
+                print(f"Error with link {link}: {e}")
+    return linkNames
 
 def get_expected_downloads(driver, previousValue):
     def valid_text_changed(d):
@@ -192,18 +205,17 @@ def download(driver, download_dir, classe, date):
     downloadLinks = None
     # This is an array cause the first value is whats useful and the second is just to compare whether the text changed or not
     expectedDownloads = [None, None]
-    previousNames = None
+    linkNames = []
     
     while True:
-        downloadLinks = get_download_links(driver, previousNames, classe, date)
-        previousNames = [link.get_attribute("name") for link in downloadLinks] if downloadLinks else []
-
+        downloadLinks = get_download_links(driver, linkNames, classe, date)
+        linkNames = get_link_names(downloadLinks)
+        
         expectedDownloads = get_expected_downloads(driver, expectedDownloads[1])
 
         found_matches_expected(downloadLinks, expectedDownloads[0], classe, date)
 
-        time.sleep(40)
-        #download_each_link(driver, downloadLinks, download_dir, classe, date)
+        download_each_link(driver, downloadLinks, download_dir, classe, date)
 
         if more_download_links_pages(driver): 
             # Resets some stuffs

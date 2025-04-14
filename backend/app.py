@@ -27,7 +27,7 @@ def main():
     classes = ["Ação Civil Pública", "Ação Civil de Improbidade Administrativa", "Ação Civil Coletiva", "Ação Popular", "Mandado de Segurança Coletivo", "Usucapião"]
     print(f"classes: {classes}")
 
-    startingDate = datetime.strptime("11/02/2025", "%d/%m/%Y")
+    startingDate = datetime.strptime("24/02/2025", "%d/%m/%Y")
     endDate = datetime.now()
     print(f"dates: from {startingDate} to {endDate}")
 
