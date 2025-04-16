@@ -14,8 +14,3 @@ def display_error_log():
         for i, error in enumerate(error_log, start=1):
             print(f"{i}- {error}")
 
-def reset(driver):
-    print("-> Resetting the WebDriver...")
-    URL = "https://esaj.tjsp.jus.br/cjpg"
-    driver.get(URL)
-    driver.maximize_window()

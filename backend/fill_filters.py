@@ -38,11 +38,10 @@ def fill_classe(driver, classe, current_date_str):
         selecionarButton.click()
         #print("-> Clicked on the 'Selecionar' button")
 
-    except:
-        context = "search_classe"
+    except Exception as e:
+        context = "fill_classe"
         error.log_error(classe, current_date_str, context)
-        print(f"Error while searching and selecting the class '{classe}'.")
-        error.reset(driver)
+        print(f"Error while searching and selecting the class '{classe}': {e}")
 
 def fill_date(driver, current_date_str):
     try:   
@@ -60,11 +59,10 @@ def fill_date(driver, current_date_str):
         end_date.send_keys(current_date_str)
         #print(f"-> Filled the end date: {current_date_str}")
     
-    except:
-        context = "search_Date"
+    except Exception as e:
+        context = "fill_date"
         error.log_error("Date", current_date_str, context)
-        print(f"Error while filling the date fields.")
-        error.reset(driver)
+        print(f"Error while filling the date fields: {e}")
 
 def submit(driver):
     try:
@@ -74,49 +72,59 @@ def submit(driver):
         consultar_button.click()
         #print(f"-> Consultar button clicked")
     
-    except:
+    except Exception as e:
         context = "submit"
-        error.log_error("Submit", "Failed to click the submit button", context)
-        print(f"Error while clicking the submit button.")
-        error.reset(driver)
+        error.log_error("Submit", "N/A", context)
+        print(f"Error while clicking the submit button: {e}")
 
 def fill_assunto(classe, driver):
-    clearButton = WebDriverWait(driver, 10).until(
-        EC.element_to_be_clickable((By.ID, "botaoLimpar_assunto"))
-    )
-    clearButton.click()
-    #print("-> Clicked on the 'Clear' button for 'assunto'")
+    try:
+        clearButton = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.ID, "botaoLimpar_assunto"))
+        )
+        clearButton.click()
+        #print("-> Clicked on the 'Clear' button for 'assunto'")
 
-    searchButton = WebDriverWait(driver, 10).until(
-        EC.element_to_be_clickable((By.ID, "botaoProcurar_assunto"))
-    )
-    searchButton.click()
-    #print("-> Clicked on the 'Search' button for 'assunto'")
+        searchButton = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.ID, "botaoProcurar_assunto"))
+        )
+        searchButton.click()
+        #print("-> Clicked on the 'Search' button for 'assunto'")
 
-    search_input = WebDriverWait(driver, 10).until(
-        EC.visibility_of_element_located((By.ID, "assunto_treeSelectFilter"))
-    )
-    search_input.send_keys("especial coletiva")
-    search_input.send_keys(Keys.RETURN)
-    #print("-> Searched for 'especial coletiva' in 'assunto'")
+        search_input = WebDriverWait(driver, 10).until(
+            EC.visibility_of_element_located((By.ID, "assunto_treeSelectFilter"))
+        )
+        search_input.send_keys("especial coletiva")
+        search_input.send_keys(Keys.RETURN)
+        #print("-> Searched for 'especial coletiva' in 'assunto'")
 
-    checkboxAssunto = WebDriverWait(driver, 10).until(
-        EC.element_to_be_clickable((By.XPATH, "//span[@id='assunto_tree_node_10460' and contains(@class, 'checkable')]"))
-    )
-    checkboxAssunto.click()
-    #print("-> Selected the checkbox for 'Usucapião Especial Coletiva'")
+        checkboxAssunto = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//span[@id='assunto_tree_node_10460' and contains(@class, 'checkable')]"))
+        )
+        checkboxAssunto.click()
+        #print("-> Selected the checkbox for 'Usucapião Especial Coletiva'")
 
-    selecionarButtonAssunto = WebDriverWait(driver, 10).until(
-        EC.element_to_be_clickable((By.XPATH, "//div[@id='assunto_treeSelectContainer']//input[@type='button' and @value='Selecionar' and contains(@class, 'spwBotaoDefaultGrid')]"))
-    )
-    #print("-> Found the 'Selecionar' button for 'assunto'")
-    selecionarButtonAssunto.click()
-    #print("-> Clicked on the 'Selecionar' button for 'assunto'")
+        selecionarButtonAssunto = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//div[@id='assunto_treeSelectContainer']//input[@type='button' and @value='Selecionar' and contains(@class, 'spwBotaoDefaultGrid')]"))
+        )
+        #print("-> Found the 'Selecionar' button for 'assunto'")
+        selecionarButtonAssunto.click()
+        #print("-> Clicked on the 'Selecionar' button for 'assunto'")
     
-def fill_filters(driver, classe, current_date_str):
-    fill_classe(driver, classe, current_date_str)
-    fill_date(driver, current_date_str)
-    if(classe == "Usucapião"): # Only for "Usucapião" class We gotta fill out the "assunto" field too
-        fill_assunto(classe, driver) 
-    submit(driver)
-    print("Filled the info")
+    except Exception as e:
+        context = "fill_assunto"
+        error.log_error(classe, "N/A", context)
+        print(f"Error while filling the 'assunto' field for class '{classe}': {e}")
+
+def fill_filters(driver, classe, current_date_str, max_retries=3):
+    try:
+        fill_classe(driver, classe, current_date_str)
+        fill_date(driver, current_date_str)
+        if classe == "Usucapião":  # Only for "Usucapião" class
+            fill_assunto(classe, driver)
+        submit(driver)
+        print("✅ Filled out the filters form")
+        return  # Exit the function if successful
+    except Exception as e:
+        error.log_error(classe, current_date_str, context = "fill_filters")
+        print(f"❌ Filled out the filters form")

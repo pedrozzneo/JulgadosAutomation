@@ -24,12 +24,12 @@ def get_month_name(date_str):
 
 def move_files(download_dir, classe, date, quantityOfFiles):
     try:
-        # Being more specific with this particular example
-        if(classe == "Usucapião"):
+        # Handle special case for "Usucapião"
+        if classe == "Usucapião":
             classe = "Usucapião Especial Coletiva"
 
         # Create the directory for the current date and class if it doesn't exist
-        dateDir = os.path.join(download_dir, str(classe), get_month_name(date), date.replace("/", "-"))
+        dateDir = os.path.join(download_dir, str(classe), date.split("/")[2], get_month_name(date), date.replace("/", "-"))
         if not os.path.exists(dateDir):
             os.makedirs(dateDir)
 
@@ -47,6 +47,12 @@ def move_files(download_dir, classe, date, quantityOfFiles):
                 print(f"-> File {destination} already exists. Deleting it")
                 os.remove(file)
 
-    except:
-        error.log_error(classe, date, context = "move_files")
-        print(f"Error while moving files.")
+    except FileNotFoundError as e:
+        error.log_error(classe, date, "move_files: File not found")
+        print(f"FileNotFoundError: {e}")
+    except PermissionError as e:
+        error.log_error(classe, date, "move_files: Permission error")
+        print(f"PermissionError: {e}")
+    except Exception as e:
+        error.log_error(classe, date, "move_files: General error")
+        print(f"Error while moving files: {e}")

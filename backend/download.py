@@ -14,7 +14,7 @@ def get_download_links(driver, previousNames, classe, date):
         if valid_links_changed(driver):
             return driver.find_elements(By.XPATH, "//a[@title='Visualizar Inteiro Teor']")
         return False  # Returning False tells WebDriverWait to keep waiting
-        
+
     def valid_links_changed(driver):
         try:
             if previousNames:
@@ -39,12 +39,10 @@ def get_download_links(driver, previousNames, classe, date):
             return False
 
     try:
-        # ✅ Pass a lambda that calls your condition function properly
-        WebDriverWait(driver, 80).until(lambda d: valid_links_changed(d))
 
         # Locate all the download links again (they might be stale otherwise)
         downloadLinks = WebDriverWait(driver, 80).until(wait_for_updated_links)
-        print(f"-> Found links: {len(downloadLinks)} ")
+        #print(f"-> Found links: {len(downloadLinks)} ")
 
         return downloadLinks
 
@@ -53,7 +51,7 @@ def get_download_links(driver, previousNames, classe, date):
         error.log_error(classe, date, context="Timeout waiting for new download links")
         return []
 
-def get_link_names(downloadLinks):
+def get_link_names(downloadLinks, classe, date):
     linkNames = []  # Reset previous names for the new set of links
     if downloadLinks:
         for link in downloadLinks:
@@ -62,9 +60,10 @@ def get_link_names(downloadLinks):
                 linkNames.append(name)
             except Exception as e:
                 print(f"Error with link {link}: {e}")
+                error.log(classe, date, context="Error getting link names")
     return linkNames
 
-def get_expected_downloads(driver, previousValue):
+def get_expected_downloads(driver, previousValue, classe, date):
     def valid_text_changed(d):
         try:
             fullDownloadsMessage = d.find_element(By.XPATH, "//td[@bgcolor='#EEEEEE' and contains(text(), 'Resultados')]").text
@@ -85,7 +84,7 @@ def get_expected_downloads(driver, previousValue):
         WebDriverWait(driver, 30).until(valid_text_changed)
 
         fullDownloadsMessage = driver.find_element(By.XPATH, "//td[@bgcolor='#EEEEEE' and contains(text(), 'Resultados')]").text
-        print(f"-> Texto inteiro: {fullDownloadsMessage}")
+        #print(f"-> Texto inteiro: {fullDownloadsMessage}")
 
         # Define the xpath of the download message and how its supposed to be once its fully loaded in pattern
         match = re.search(pattern, fullDownloadsMessage)
@@ -100,6 +99,11 @@ def get_expected_downloads(driver, previousValue):
     except Exception as e:
         error.log_error(None, None, context=f"Error in get_expected_downloads: {str(e)}")
         return None, fullDownloadsMessage
+    
+    except TimeoutException:
+        print("🔴 Timeout: No new valid links appeared within the wait period.")
+        error.log_error(classe, date, context="Timeout waiting for new download links")
+        return []
 
 def found_matches_expected(downloadLinks, expectedDownloads, classe, date):
     try:
@@ -112,7 +116,6 @@ def found_matches_expected(downloadLinks, expectedDownloads, classe, date):
         error.log_error(classe, date, context=f"Error in found_matches_expected:")
 
 def download_each_link(driver, downloadLinks, download_dir, classe, date):
-    
     def count_files(download_dir):
         return sum(len(files) for _, _, files in os.walk(download_dir))
 
@@ -159,7 +162,7 @@ def download_each_link(driver, downloadLinks, download_dir, classe, date):
         if len(downloadLinks) != 0:
             for index, link in enumerate(downloadLinks, start=1):
                 link.click()
-                print(f"Link {index} clicked")
+                #print(f"Link {index} clicked")
 
                 # It opens up a new window, so go to that window
                 driver.switch_to.window(driver.window_handles[-1])
@@ -203,26 +206,29 @@ def download(driver, download_dir, classe, date):
     global files_properly_downloaded
     files_properly_downloaded = 0 # Resets counter for each different class/date
     downloadLinks = None
-    # This is an array cause the first value is whats useful and the second is just to compare whether the text changed or not
+    # This is an array cause the first value is whats useful and the second is just to compare wether the text changed or not
     expectedDownloads = [None, None]
     linkNames = []
     
     while True:
-        downloadLinks = get_download_links(driver, linkNames, classe, date)
-        linkNames = get_link_names(downloadLinks)
-        
-        expectedDownloads = get_expected_downloads(driver, expectedDownloads[1])
+        try:
+            downloadLinks = get_download_links(driver, linkNames, classe, date)
+            linkNames = get_link_names(downloadLinks, classe, date)
+            
+            expectedDownloads = get_expected_downloads(driver, expectedDownloads[1], classe, date)
 
-        found_matches_expected(downloadLinks, expectedDownloads[0], classe, date)
+            found_matches_expected(downloadLinks, expectedDownloads[0], classe, date)
 
-        download_each_link(driver, downloadLinks, download_dir, classe, date)
+            download_each_link(driver, downloadLinks, download_dir, classe, date)
 
-        if more_download_links_pages(driver): 
-            # Resets some stuffs
-            continue
+            if more_download_links_pages(driver): 
+                # Resets some stuffs
+                continue
 
-        # Just exit the whole loop if there isn't any other download link pages
-        break
+            # Just exit the whole loop if there isn't any other download link pages
+            break
+        except Exception as e:
+            error.log_error(classe, date, context=f"Error in download loop: {str(e)}")
+            break
 
 
-       
