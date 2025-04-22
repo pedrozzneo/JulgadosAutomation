@@ -60,7 +60,7 @@ def get_link_names(downloadLinks, classe, date):
                 linkNames.append(name)
             except Exception as e:
                 print(f"Error with link {link}: {e}")
-                error.log(classe, date, context="Error getting link names")
+                error.log_error(classe, date, context="Error getting link names")
     return linkNames
 
 def get_expected_downloads(driver, previousValue, classe, date):
@@ -159,10 +159,11 @@ def download_each_link(driver, downloadLinks, download_dir, classe, date):
         driver.switch_to.window(driver.window_handles[0])
 
     try:
+        print(f"-> Downloading {len(downloadLinks)} files")
         if len(downloadLinks) != 0:
             for index, link in enumerate(downloadLinks, start=1):
                 link.click()
-                #print(f"Link {index} clicked")
+                print(f"Link {index} clicked")
 
                 # It opens up a new window, so go to that window
                 driver.switch_to.window(driver.window_handles[-1])

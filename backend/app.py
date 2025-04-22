@@ -9,6 +9,7 @@ import fill_filters as fill_filters
 import download as download
 import files as files
 import error as error
+from concurrent.futures import ThreadPoolExecutor
 
 def ThereAreFileLinks(driver):
     try:
@@ -69,77 +70,82 @@ def iterate_error_log(driver, download_dir):
             error.log_error(classe, date, "ThereAreFileLinks or download")
             continue
 
-def main():
-    URL = "https://esaj.tjsp.jus.br/cjpg"
-
-    # List all classes to be searched
-    classes = ["Ação Civil Pública", "Ação Civil de Improbidade Administrativa", "Ação Civil Coletiva", "Ação Popular", "Mandado de Segurança Coletivo", "Usucapião"]
-    classes = ["Ação Civil Pública"]
-    print(f"classes: {classes}")
-
-    startingDate = datetime.strptime("01/01/2022", "%d/%m/%Y")
-    endDate = datetime.now()
-    endDate = datetime.strptime("31/12/2022", "%d/%m/%Y")
-    print(f"dates: from {startingDate} to {endDate}")
-
-    # Calculate the interval between start_date and end_date
-    interval = endDate - startingDate
-
-    # Temporary download directory before being moved to the specific date folder
-    download_dir = r"C:\Users\nikao\Desktop\Julgados"
-    if not os.path.exists(download_dir):
-        os.makedirs(download_dir)
-
-    # Set Chrome options
+def create_driver(URL, download_dir):
     options = webdriver.ChromeOptions()
     options.add_experimental_option('prefs', {
         "download.default_directory": download_dir,
         "download.prompt_for_download": False,
     })
-    options.add_argument("--headless")
-
-    # Start WebDriver
+    options.add_argument("--headless=new")
+    options.add_argument("--disable-logging")  # Disable logging from chrome
+  
     driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
-    driver.get(URL)
-    driver.maximize_window()
+    return driver
 
-    # Loop through each class and date range
-    for classe in classes:
-        # Loop through each date in the range
-        for i in range(interval.days + 1):
-            date = (startingDate + timedelta(days=i)).strftime("%d/%m/%Y")
-            print(f"\n{classe.upper()} ON {date.upper()}: \n")
+def scrape(classe):
+    # Setup the driver
+    URL = "https://esaj.tjsp.jus.br/cjpg"
+    download_dir = r"C:\Users\nikao\Desktop\Julgados"
+    driver = create_driver(URL, download_dir)
+
+    driver.get(URL)
+    driver.implicitly_wait(10) 
+    #driver.maximize_window()
+
+    dateTime = datetime.strptime("01/01/2022", "%d/%m/%Y")
+    endDateTime = datetime.strptime("31/12/2024", "%d/%m/%Y")
+
+    try:
+        while dateTime <= endDateTime:
+            # Goes day by day
+            dateTime = (dateTime + timedelta(1))
+            # Formats to string for use
+            date = dateTime.strftime("%d/%m/%Y")
             
-            # Fill out all the fillters
             try:
                 fill_filters.fill_filters(driver, classe, date)
             except Exception as e:
-                print(f"Error while filling filters for class '{classe}' and date '{date}': {e}")
+                print(f"❌ fill_filters call:  {classe} on {date}: {e}")
                 error.log_error(classe, date, "fill_filters")
                 continue
+    except KeyboardInterrupt:
+        print("Process interrupted by user.")
+
+    driver.quit()
             
-            # Check if there are links for download before starting the whole process
-            try:
-                if ThereAreFileLinks(driver):
-                    download.download(driver, download_dir, classe, date)
-                    try:
-                        files.move_files(download_dir, classe, date, download.files_properly_downloaded)
-                    except Exception as e:
-                        print(f"Error while moving files for class '{classe}' and date '{date}': {e}")
-                        error.log_error(classe, date, "move_files")
-                        continue
-            except Exception as e:
-                print(f"Error while checking for file links or downloading files for class '{classe}' and date '{date}': {e}")
-                error.log_error(classe, date, "ThereAreFileLinks or download")
-                continue
+    #     # Check if there are links for download before starting the whole process
+    #     try:
+    #         if ThereAreFileLinks(driver):
+    #             download.download(driver, download_dir, classe, date)
+    #             try:
+    #                 files.move_files(download_dir, classe, date, download.files_properly_downloaded)
+    #             except Exception as e:
+    #                 print(f"Error while moving files for class '{classe}' and date '{date}': {e}")
+    #                 error.log_error(classe, date, "move_files")
+    #                 continue
+    #     except Exception as e:
+    #         print(f"Error while checking for file links or downloading files for class '{classe}' and date '{date}': {e}")
+    #         error.log_error(classe, date, "ThereAreFileLinks or download")
+    #         continue
 
-    # Display all errors
-    try:
-        error.display_error_log()
-    except Exception as e:
-        print(f"Error displaying error log: {e}")
+    # # Display all errors
+    # try:
+    #     error.display_error_log()
+    # except Exception as e:
+    #     print(f"Error displaying error log: {e}")
 
 
-    iterate_error_log(driver, download_dir)
+    # iterate_error_log(driver, download_dir)
 
-main()
+# List all classes to be searched
+classes = [
+    "Mandado de Segurança Coletivo", 
+    "Ação Civil de Improbidade Administrativa", 
+    "Ação Civil Coletiva",
+    "Ação Civil Pública", 
+    "Ação Popular", 
+    "Usucapião"
+]
+
+with ThreadPoolExecutor() as executor:
+    executor.map(scrape, classes)

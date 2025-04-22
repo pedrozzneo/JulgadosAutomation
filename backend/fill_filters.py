@@ -2,129 +2,127 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
 import error as error
+import time
 
-def fill_classe(driver, classe, current_date_str):
+def wait(driver, id, timeout=10):
+    return WebDriverWait(driver, timeout).until(EC.element_to_be_clickable((By.ID, id)))
+
+def fill_classe(driver, classe, date):
     try:
-        # All steps to fill the "Classe" field
-        clearButton = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.ID, "botaoLimpar_classe"))
-        )
+        clearButton = wait(driver, id="botaoLimpar_classe")
         clearButton.click()
-        #print("-> Clicked on the 'Clear' button")
 
-        searchButton = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.ID, "botaoProcurar_classe"))
-        )
+        searchButton = wait(driver, id="botaoProcurar_classe")
         searchButton.click()
-        #print("-> Clicked on the 'Search' button")
 
-        search_input = WebDriverWait(driver, 10).until(
-            EC.visibility_of_element_located((By.ID, "classe_treeSelectFilter"))
-        )
+        search_input = wait(driver, id="classe_treeSelectFilter")
         search_input.send_keys(classe)
         search_input.send_keys(Keys.RETURN)
-        #print(f"-> Searched for the class: {classe}")
+
+        # checkboxClass = wait(driver, id="classe_tree_node_10460")
+        # checkboxClass.click()
+
+        # selecionarButton = wait(driver, id="botaoSelecionar_classe")
+        # selecionarButton.click()
 
         checkboxClass = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.XPATH, f"//span[contains(@class, 'checkable') and text()='{classe}']"))
         )
         checkboxClass.click()
-        #print(f"-> Selected the checkbox for class: {classe}")
 
         selecionarButton = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.XPATH, "//input[@type='button' and @value='Selecionar' and contains(@class, 'spwBotaoDefaultGrid')]"))
         )
         selecionarButton.click()
-        #print("-> Clicked on the 'Selecionar' button")
 
+    except TimeoutException:
+        error.log_error(classe, date, context="fill_filters -> fill_classe: TimeoutException")
+        print(f"❌ Timeout in fill_filter -> fill_classe: {classe} on {date}: TimeoutException")
+        raise 
     except Exception as e:
-        context = "fill_classe"
-        error.log_error(classe, current_date_str, context)
-        print(f"Error while searching and selecting the class '{classe}': {e}")
+        error.log_error(classe, date, context="fill_filters -> fill_classe")
+        print(f"❌ Error in fill_filter -> fill_classe: {classe} on {date}: {e}")
+        raise
 
 def fill_date(driver, current_date_str):
-    try:   
-        start_date = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.ID, "iddadosConsulta.dtInicio"))
-        )
+    try:
+        clearButton = wait(driver, id="botaoLimpar_data")
+        clearButton.click()
+
+        start_date = wait(driver, id="iddadosConsulta.dtInicio")
         start_date.clear()
         start_date.send_keys(current_date_str)
-        #print(f"-> Filled the start date: {current_date_str}")
 
-        end_date = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.ID, "iddadosConsulta.dtFim"))
-        )
+        end_date = wait(driver, id="iddadosConsulta.dtFim")
         end_date.clear()
         end_date.send_keys(current_date_str)
-        #print(f"-> Filled the end date: {current_date_str}")
-    
+
+    except TimeoutException:
+        error.log_error("Date", current_date_str, context="fill_filters -> fill_date: TimeoutException")
+        print(f"❌ Timeout in fill_filter -> fill_date: {current_date_str}: TimeoutException")
+        raise
     except Exception as e:
-        context = "fill_date"
-        error.log_error("Date", current_date_str, context)
-        print(f"Error while filling the date fields: {e}")
+        error.log_error("Date", current_date_str, context="fill_filters -> fill_date")
+        print(f"❌ Error in fill_filter -> fill_date: {current_date_str}: {e}")
+        raise
 
 def submit(driver):
     try:
-        consultar_button = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.ID, "pbSubmit"))
-        )
+        consultar_button = wait(driver, id="pbSubmit")
         consultar_button.click()
-        #print(f"-> Consultar button clicked")
-    
+
+    except TimeoutException:
+        error.log_error("Submit", "N/A", context="fill_filters -> submit: TimeoutException")
+        print(f"❌ Timeout in fill_filter -> submit: TimeoutException")
+        raise
     except Exception as e:
-        context = "submit"
-        error.log_error("Submit", "N/A", context)
-        print(f"Error while clicking the submit button: {e}")
+        error.log_error("Submit", "N/A", context="fill_filters -> submit")
+        print(f"❌ Error in fill_filter -> submit: {e}")
+        raise
 
 def fill_assunto(classe, driver):
     try:
-        clearButton = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.ID, "botaoLimpar_assunto"))
-        )
+        clearButton = wait(driver, id="botaoLimpar_assunto")
         clearButton.click()
-        #print("-> Clicked on the 'Clear' button for 'assunto'")
 
-        searchButton = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.ID, "botaoProcurar_assunto"))
-        )
+        searchButton = wait(driver, id="botaoProcurar_assunto")
         searchButton.click()
-        #print("-> Clicked on the 'Search' button for 'assunto'")
 
-        search_input = WebDriverWait(driver, 10).until(
-            EC.visibility_of_element_located((By.ID, "assunto_treeSelectFilter"))
-        )
+        search_input = wait(driver, id="assunto_treeSelectFilter")
         search_input.send_keys("especial coletiva")
         search_input.send_keys(Keys.RETURN)
-        #print("-> Searched for 'especial coletiva' in 'assunto'")
 
-        checkboxAssunto = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.XPATH, "//span[@id='assunto_tree_node_10460' and contains(@class, 'checkable')]"))
-        )
+        checkboxAssunto = wait(driver, id="assunto_tree_node_10460")
         checkboxAssunto.click()
-        #print("-> Selected the checkbox for 'Usucapião Especial Coletiva'")
 
-        selecionarButtonAssunto = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.XPATH, "//div[@id='assunto_treeSelectContainer']//input[@type='button' and @value='Selecionar' and contains(@class, 'spwBotaoDefaultGrid')]"))
-        )
-        #print("-> Found the 'Selecionar' button for 'assunto'")
+        selecionarButtonAssunto = wait(driver, id="botaoSelecionar_assunto")
         selecionarButtonAssunto.click()
-        #print("-> Clicked on the 'Selecionar' button for 'assunto'")
-    
-    except Exception as e:
-        context = "fill_assunto"
-        error.log_error(classe, "N/A", context)
-        print(f"Error while filling the 'assunto' field for class '{classe}': {e}")
 
-def fill_filters(driver, classe, current_date_str, max_retries=3):
-    try:
-        fill_classe(driver, classe, current_date_str)
-        fill_date(driver, current_date_str)
-        if classe == "Usucapião":  # Only for "Usucapião" class
-            fill_assunto(classe, driver)
-        submit(driver)
-        print("✅ Filled out the filters form")
-        return  # Exit the function if successful
+    except TimeoutException:
+        error.log_error(classe, "N/A", context="fill_filters -> fill_assunto: TimeoutException")
+        print(f"❌ Timeout in fill_filter -> fill_assunto: {classe}: TimeoutException")
     except Exception as e:
-        error.log_error(classe, current_date_str, context = "fill_filters")
-        print(f"❌ Filled out the filters form")
+        error.log_error(classe, "N/A", context="fill_filters -> fill_assunto")
+        print(f"❌ Error in fill_filter -> fill_assunto: {classe}: {e}")
+
+def fill_filters(driver, classe, date):
+    try:
+        print(f"Filling filters for class: {classe} and date: {date}")
+        fill_classe(driver, classe, date)
+        print(f"✅ Fill: {classe}")
+        fill_date(driver, date)
+
+        if classe == "Usucapião":  
+            fill_assunto(classe, driver)
+
+        submit(driver)
+        print(f"✅ Fill: {classe} and {date}")
+
+    except TimeoutException:
+        error.log_error(classe, date, context="fill_filters: TimeoutException")
+        print(f"❌ Timeout in fill_filters: {classe} and {date}: TimeoutException")
+    except Exception as e:
+        error.log_error(classe, date, context="fill_filters")
+        print(f"❌ Error in fill_filters: {classe} and {date}: {e}")
