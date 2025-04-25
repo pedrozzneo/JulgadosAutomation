@@ -1,4 +1,6 @@
 
+-> raise errors
+
 -> on any except, call the " display error log"
 
 

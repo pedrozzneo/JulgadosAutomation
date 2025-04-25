@@ -1,67 +1,64 @@
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import TimeoutException, NoSuchElementException
 import time
 import re
 import os
 import error as error
 
 files_properly_downloaded = 0
+differentPage = False
 
-def get_download_links(driver, previousNames, classe, date):
-    def wait_for_updated_links(driver):
-        if valid_links_changed(driver):
-            return driver.find_elements(By.XPATH, "//a[@title='Visualizar Inteiro Teor']")
-        return False  # Returning False tells WebDriverWait to keep waiting
-
-    def valid_links_changed(driver):
-        try:
-            if previousNames:
-                print("Previous:", previousNames)
-
-            currentLinks = WebDriverWait(driver, 10).until(
-                EC.presence_of_all_elements_located((By.XPATH, "//a[@title='Visualizar Inteiro Teor']"))
-            )
-
-            currentNames = [link.get_attribute("name") for link in currentLinks]
-            print("Current:", currentNames)
-
-            if previousNames in currentNames:
-                print("🟡 Link ainda presente, nada novo.")
-                return False
-            else:
-                print("✅ Link novo detectado!")
-                return True
-
-        except Exception as e:
-            print("🟡 Link ainda nao mudou")
-            return False
+def message_or_download_link_present(driver):
+    try:
+        # No results message
+        driver.find_element(By.XPATH, "//div[contains(@class, 'aviso espacamentoCimaBaixo centralizado fonteNegrito') and contains(text(), 'Não foi encontrado nenhum resultado correspondente à busca realizada.')]")
+        return "no_results_message"
+    except NoSuchElementException:
+        pass
 
     try:
+        driver.find_element(By.XPATH, "//a[@title='Download' and contains(@class, 'esajLinkLogin')]")
+        return "downloadLink"
+    except NoSuchElementException:
+        pass
 
-        # Locate all the download links again (they might be stale otherwise)
-        downloadLinks = WebDriverWait(driver, 80).until(wait_for_updated_links)
-        #print(f"-> Found links: {len(downloadLinks)} ")
+    return None # Keep trying to find them
 
+def there_are_download_links(driver):
+    try:
+        result = WebDriverWait(driver, 10).until(message_or_download_link_present)
+        
+        if result == "no_results_message":
+            print(" ❌ Files avaiable for download")
+            return False
+        
+        if result == "downloadLink":
+            print(" ✅ Files avaiable for download")
+            return True
+    except TimeoutException:
+        print("Timeout while checking for file links.")
+        raise
+    except Exception as e:
+        raise
+
+def links_changed(driver, downloadLinks, classe, date):
+    try:
+        WebDriverWait(driver, 10).until(EC.staleness_of(downloadLinks))
+        return True
+    except TimeoutException:
+        raise 
+
+def get_download_links(driver, downloadLinks, classe, date):
+    try:
+        downloadLinks = driver.find_elements(By.XPATH, "//a[@title='Download' and contains(@class, 'esajLinkLogin')]")
         return downloadLinks
 
     except TimeoutException:
         print("🔴 Timeout: No new valid links appeared within the wait period.")
         error.log_error(classe, date, context="Timeout waiting for new download links")
         return []
-
-def get_link_names(downloadLinks, classe, date):
-    linkNames = []  # Reset previous names for the new set of links
-    if downloadLinks:
-        for link in downloadLinks:
-            try:
-                name = link.get_attribute("name")
-                linkNames.append(name)
-            except Exception as e:
-                print(f"Error with link {link}: {e}")
-                error.log_error(classe, date, context="Error getting link names")
-    return linkNames
 
 def get_expected_downloads(driver, previousValue, classe, date):
     def valid_text_changed(d):
@@ -188,48 +185,50 @@ def download_each_link(driver, downloadLinks, download_dir, classe, date):
     except Exception:
         error.log_error(classe, date, context=f"Error in download_each_link")
 
-def more_download_links_pages(driver):
+def move_next_page(driver):
     try:
-        time.sleep(5)
         # Try to locate the "Próxima página" link
         next_page_link = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.XPATH, "//a[@title='Próxima página' and contains(@class, 'esajLinkLogin')]"))
         )
-        print("-> Found 'Próxima página' link.")
+
+        # Move there
         next_page_link.click()
-        print("-> advance to the next page")
         return True
     except:
-        print("-> 'Próxima página' link not found.")
         return False
 
 def download(driver, download_dir, classe, date):
+    # Resets counter for each different class/date
     global files_properly_downloaded
-    files_properly_downloaded = 0 # Resets counter for each different class/date
+    files_properly_downloaded = 0 
+
+    # This is the first time I am going to check for download links, so I need to get them all
+    global differentPage 
+    differentPage = False
+
     downloadLinks = None
     # This is an array cause the first value is whats useful and the second is just to compare wether the text changed or not
     expectedDownloads = [None, None]
-    linkNames = []
     
     while True:
-        try:
-            downloadLinks = get_download_links(driver, linkNames, classe, date)
-            linkNames = get_link_names(downloadLinks, classe, date)
-            
-            expectedDownloads = get_expected_downloads(driver, expectedDownloads[1], classe, date)
+        downloadLinks = get_download_links(driver, downloadLinks, classe, date)
+        
+        # expectedDownloads = get_expected_downloads(driver, expectedDownloads[1], classe, date)
 
-            found_matches_expected(downloadLinks, expectedDownloads[0], classe, date)
+        # found_matches_expected(downloadLinks, expectedDownloads[0], classe, date)
 
-            download_each_link(driver, downloadLinks, download_dir, classe, date)
+        # download_each_link(driver, downloadLinks, download_dir, classe, date)
 
-            if more_download_links_pages(driver): 
-                # Resets some stuffs
-                continue
-
-            # Just exit the whole loop if there isn't any other download link pages
-            break
-        except Exception as e:
-            error.log_error(classe, date, context=f"Error in download loop: {str(e)}")
-            break
+        # # Move to the next download link page if there are any
+        # if move_next_page(driver): 
+        #     # Check if the next donwload link page is valid and contain new links
+        #     try: 
+        #         links_changed(driver, downloadLinks, classe, date)
+        #         continue
+        #     except TimeoutException:
+        #         print("download -> get_download_links -> links_changed: TimeoutException")
+        #         error.log_error(classe, date, context="download -> get_download_links -> links_changed: TimeoutException")
+        break
 
 

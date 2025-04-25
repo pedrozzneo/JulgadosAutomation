@@ -10,23 +10,12 @@ import download as download
 import files as files
 import error as error
 from concurrent.futures import ThreadPoolExecutor
-
-def ThereAreFileLinks(driver):
-    try:
-        no_results_message = driver.find_element(By.XPATH, "//div[contains(@class, 'aviso espacamentoCimaBaixo centralizado fonteNegrito') and contains(text(), 'Não foi encontrado nenhum resultado correspondente à busca realizada.')]")
-        if no_results_message:
-            print(" NO Files avaiable for download")
-            return False
-    except TimeoutException:
-        print("Timeout while checking for file links.")
-        return False
-    except Exception as e:
-        print(f" Files avaiable for download")
-        return True
         
 def iterate_error_log(driver, download_dir):
     counter = 0
     while error.error_log:
+        if stop_threads:
+            return
         counter += 1
         if counter % 20 == 0:
               # Display all errors
@@ -89,45 +78,39 @@ def scrape(classe):
     driver = create_driver(URL, download_dir)
 
     driver.get(URL)
-    driver.implicitly_wait(10) 
+    driver.implicitly_wait(10)  # seconds
     #driver.maximize_window()
 
+    # Set the period of time to be searched
     dateTime = datetime.strptime("01/01/2022", "%d/%m/%Y")
     endDateTime = datetime.strptime("31/12/2024", "%d/%m/%Y")
 
-    try:
-        while dateTime <= endDateTime:
-            # Goes day by day
-            dateTime = (dateTime + timedelta(1))
-            # Formats to string for use
-            date = dateTime.strftime("%d/%m/%Y")
-            
-            try:
-                fill_filters.fill_filters(driver, classe, date)
-            except Exception as e:
-                print(f"❌ fill_filters call:  {classe} on {date}: {e}")
-                error.log_error(classe, date, "fill_filters")
-                continue
-    except KeyboardInterrupt:
-        print("Process interrupted by user.")
+    # Iterates day by day until the end
+    while dateTime <= endDateTime:
+        # Increment day and format for string use
+        dateTime = (dateTime + timedelta(1))
+        date = dateTime.strftime("%d/%m/%Y")
+        
+        # Fill out all the filters
+        try:
+            fill_filters.fill_filters(driver, classe, date)
+        except Exception as e:
+            print(f"❌ fill_filters call:  {classe} on {date}: {e}")
+            error.log_error(classe, date, "fill_filters")
+            continue
+
+        # Download and move the files if there are any
+        if download.there_are_download_links(driver):
+            download.download(driver, download_dir, classe, date)
+            # try:
+            #     files.move_files(download_dir, classe, date, download.files_properly_downloaded)
+            # except Exception as e:
+            #     print(f"Error while moving files for class '{classe}' and date '{date}': {e}")
+            #     error.log_error(classe, date, "move_files")
+            #     continue
 
     driver.quit()
             
-    #     # Check if there are links for download before starting the whole process
-    #     try:
-    #         if ThereAreFileLinks(driver):
-    #             download.download(driver, download_dir, classe, date)
-    #             try:
-    #                 files.move_files(download_dir, classe, date, download.files_properly_downloaded)
-    #             except Exception as e:
-    #                 print(f"Error while moving files for class '{classe}' and date '{date}': {e}")
-    #                 error.log_error(classe, date, "move_files")
-    #                 continue
-    #     except Exception as e:
-    #         print(f"Error while checking for file links or downloading files for class '{classe}' and date '{date}': {e}")
-    #         error.log_error(classe, date, "ThereAreFileLinks or download")
-    #         continue
-
     # # Display all errors
     # try:
     #     error.display_error_log()
