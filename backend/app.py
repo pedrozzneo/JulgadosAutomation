@@ -1,6 +1,7 @@
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service as ChromeService
-from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.firefox.service import Service
+from selenium.webdriver.firefox.options import Options
+from webdriver_manager.firefox import GeckoDriverManager
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 from datetime import datetime, timedelta
@@ -86,22 +87,21 @@ def main():
     interval = endDate - startingDate
 
     # Temporary download directory before being moved to the specific date folder
-    download_dir = r"C:\Users\nikao\Desktop\Julgados"
+    download_dir = "/home/nikao/Documents/pdfs"
     if not os.path.exists(download_dir):
         os.makedirs(download_dir)
 
-    # Set Chrome options
-    options = webdriver.ChromeOptions()
-    options.add_experimental_option('prefs', {
-        "download.default_directory": download_dir,
-        "download.prompt_for_download": False,
-    })
-    options.add_argument("--headless")
+    #Set Firefox options
+    options = Options()
+    options.set_preference("browser.download.folderList", 2)  # Use custom download dir
+    options.set_preference("browser.download.dir", download_dir)  # Set the download directory
+    options.set_preference("browser.helperApps.neverAsk.saveToDisk", "application/pdf")  # Auto-download PDFs
+    #options.set_preference("pdfjs.disabled", True)  # Disable PDF viewer in Firefox
 
-    # Start WebDriver
-    driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
-    driver.get(URL)
-    driver.maximize_window()
+    # Initialize it
+    service = Service(GeckoDriverManager().install())
+    driver = webdriver.Firefox(service=service, options=options)
+    driver.get("https://esaj.tjsp.jus.br/cjpg") # Access the desired page
 
     # Loop through each class and date range
     for classe in classes:
