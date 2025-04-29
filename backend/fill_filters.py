@@ -65,6 +65,12 @@ def fill_date(driver, current_date_str):
         print(f"Error while filling the date fields: {e}")
 
 def submit(driver):
+    
+    # Wait for any overlay with both classes to disappear
+    WebDriverWait(driver, 10).until(
+        EC.invisibility_of_element_located((By.CSS_SELECTOR, "div.blockUI.blockOverlay"))
+    )
+    
     try:
         consultar_button = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.ID, "pbSubmit"))
