@@ -93,6 +93,7 @@ def main():
 
     #Set Firefox options
     options = Options()
+    options.set_preference("pdfjs.disabled", True) # Avoid opening many pdp windows
     options.set_preference("browser.download.folderList", 2)  # Use custom download dir
     options.set_preference("browser.download.dir", download_dir)  # Set the download directory
     options.set_preference("browser.helperApps.neverAsk.saveToDisk", "application/pdf")  # Auto-download PDFs
@@ -102,6 +103,7 @@ def main():
     service = Service(GeckoDriverManager().install())
     driver = webdriver.Firefox(service=service, options=options)
     driver.get("https://esaj.tjsp.jus.br/cjpg") # Access the desired page
+    driver.implicitly_wait(60)
 
     # Loop through each class and date range
     for classe in classes:
