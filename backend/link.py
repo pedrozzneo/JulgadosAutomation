@@ -20,8 +20,8 @@ def message_or_download_link_present(driver):
         pass
 
     # Check for download link
-    try:
-        if driver.find_element(By.XPATH, "//a[@title='Download' and contains(@class, 'esajLinkLogin')]"):
+    try: 
+        if driver.find_element(By.XPATH, "//a[@title='Visualizar Inteiro Teor']"):
             print("Download link found.")
             return "download_link"  
     except NoSuchElementException:
