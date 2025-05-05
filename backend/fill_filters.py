@@ -4,7 +4,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import error as error
 
-def fill_classe(driver, classe, current_date_str):
+def fill_classe(driver, classe, date):
     try:
         # All steps to fill the "Classe" field
         clearButton = WebDriverWait(driver, 10).until(
@@ -39,32 +39,30 @@ def fill_classe(driver, classe, current_date_str):
         #print("-> Clicked on the 'Selecionar' button")
 
     except Exception as e:
-        context = "fill_classe"
-        error.log_error(classe, current_date_str, context)
-        print(f"Error while searching and selecting the class '{classe}': {e}")
+        error.log_error(classe, date, context= "forms -> fill_classe")
+        raise
 
-def fill_date(driver, current_date_str):
+def fill_date(driver, classe, date):
     try:   
         start_date = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.ID, "iddadosConsulta.dtInicio"))
         )
         start_date.clear()
-        start_date.send_keys(current_date_str)
+        start_date.send_keys(date)
         #print(f"-> Filled the start date: {current_date_str}")
 
         end_date = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.ID, "iddadosConsulta.dtFim"))
         )
         end_date.clear()
-        end_date.send_keys(current_date_str)
+        end_date.send_keys(date)
         #print(f"-> Filled the end date: {current_date_str}")
     
     except Exception as e:
-        context = "fill_date"
-        error.log_error("Date", current_date_str, context)
-        print(f"Error while filling the date fields: {e}")
+        error.log_error(classe, date, context= "forms -> fill_date")
+        raise
 
-def submit(driver):
+def submit(driver, classe, date):
     try:
         consultar_button = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.ID, "pbSubmit"))
@@ -72,12 +70,11 @@ def submit(driver):
         consultar_button.click()
         #print(f"-> Consultar button clicked")
     
-    except Exception as e:
-        context = "submit"
-        error.log_error("Submit", "N/A", context)
-        print(f"Error while clicking the submit button: {e}")
+    except Exception as e: 
+        error.log_error(classe, date, context= "forms -> submit")
+        raise
 
-def fill_assunto(classe, driver):
+def fill_assunto(driver, classe, date):
     try:
         clearButton = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.ID, "botaoLimpar_assunto"))
@@ -111,20 +108,18 @@ def fill_assunto(classe, driver):
         selecionarButtonAssunto.click()
         #print("-> Clicked on the 'Selecionar' button for 'assunto'")
     
-    except Exception as e:
-        context = "fill_assunto"
-        error.log_error(classe, "N/A", context)
-        print(f"Error while filling the 'assunto' field for class '{classe}': {e}")
+    except Exception as e: 
+        error.log_error(classe, date, context= "forms -> fill_assunto")
+        raise
 
-def fill_filters(driver, classe, current_date_str, max_retries=3):
+def fill_filters(driver, classe, date):
     try:
-        fill_classe(driver, classe, current_date_str)
-        fill_date(driver, current_date_str)
+        fill_classe(driver, classe, date)
+        fill_date(driver, classe, date)
         if classe == "Usucapião":  # Only for "Usucapião" class
-            fill_assunto(classe, driver)
-        submit(driver)
+            fill_assunto(driver, classe, date)
+        submit(driver, classe, date)
         print("✅ Filled out the filters form")
         return  # Exit the function if successful
-    except Exception as e:
-        error.log_error(classe, current_date_str, context = "fill_filters")
+    except Exception:
         print(f"❌ Filled out the filters form")

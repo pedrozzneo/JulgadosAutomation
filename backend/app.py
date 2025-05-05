@@ -103,9 +103,8 @@ def main():
     driver.get(URL)
     driver.maximize_window()
 
-    # Loop through each class and date range
+    # Loop through each class and date
     for classe in classes:
-        # Loop through each date in the range
         for i in range(interval.days + 1):
             date = (startingDate + timedelta(days=i)).strftime("%d/%m/%Y")
             print(f"\n{classe.upper()} ON {date.upper()}: \n")
