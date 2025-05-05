@@ -5,7 +5,7 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 from datetime import datetime, timedelta
 import os
-import fill_filters as fill_filters
+import form as form
 import download as download
 import files as files
 import error as error
@@ -48,7 +48,7 @@ def iterate_error_log(driver, download_dir):
 
         # Fill out all the fillters
         try:
-            fill_filters.fill_filters(driver, classe, date)
+            form.fill_filters(driver, classe, date)
         except Exception as e:
             print(f"Error while filling filters for class '{classe}' and date '{date}': {e}")
             error.log_error(classe, date, "fill_filters")
@@ -111,7 +111,7 @@ def main():
             
             # Fill out all the fillters
             try:
-                fill_filters.fill_filters(driver, classe, date)
+                form.fill_filters(driver, classe, date)
             except Exception as e:
                 print(f"Error while filling filters for class '{classe}' and date '{date}': {e}")
                 error.log_error(classe, date, "fill_filters")
