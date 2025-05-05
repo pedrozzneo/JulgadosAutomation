@@ -29,7 +29,7 @@ def iterate_error_log(driver, download_dir):
         counter += 1
         if counter % 20 == 0:
               # Display all errors
-                try:
+                try:    
                     error.display_error_log()
                 except Exception as e:
                     print(f"Error displaying error log: {e}")
@@ -96,7 +96,7 @@ def main():
         "download.default_directory": download_dir,
         "download.prompt_for_download": False,
     })
-    options.add_argument("--headless")
+    #options.add_argument("--headless")
 
     # Start WebDriver
     driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)

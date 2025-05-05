@@ -48,7 +48,7 @@ def get_download_links(driver, previousNames, classe, date):
 
     except TimeoutException:
         print("🔴 Timeout: No new valid links appeared within the wait period.")
-        error.log_error(classe, date, context="Timeout waiting for new download links")
+        error.log_error(classe, date, context="get_download_links: Timeout waiting for new download links")
         return []
 
 def get_link_names(downloadLinks, classe, date):
@@ -60,7 +60,7 @@ def get_link_names(downloadLinks, classe, date):
                 linkNames.append(name)
             except Exception as e:
                 print(f"Error with link {link}: {e}")
-                error.log(classe, date, context="Error getting link names")
+                error.log_error(classe, date, context="get_link_names")  # Fixed context name
     return linkNames
 
 def get_expected_downloads(driver, previousValue, classe, date):
@@ -108,12 +108,12 @@ def get_expected_downloads(driver, previousValue, classe, date):
 def found_matches_expected(downloadLinks, expectedDownloads, classe, date):
     try:
         if len(downloadLinks) != expectedDownloads:
-            error.log_error(classe, date, context=f"-> Mismatch: Found {len(downloadLinks)} links, but expected {expectedDownloads}.")
+            error.log_error(classe, date, context="found_matches_expected")  # Fixed context name
             print("-> Download links DON'T match expected downloads.")
             return
         print("-> Download links match expected downloads.")
     except Exception:
-        error.log_error(classe, date, context=f"Error in found_matches_expected:")
+        error.log_error(classe, date, context="found_matches_expected")  # Fixed context name
 
 def download_each_link(driver, downloadLinks, download_dir, classe, date):
     def count_files(download_dir):
@@ -134,7 +134,7 @@ def download_each_link(driver, downloadLinks, download_dir, classe, date):
             return download_button
         
         except:
-            error.log_error(classe, date, context= "Unable to assign the download button")
+            error.log_error(classe, date, context="getDownloadButton")  # Fixed context name
             reset_window_and_frame(driver)
 
     def is_file_downloaded(download_dir, sizeBeforeDownload, timeout=30, classe=None, date=None):
@@ -149,7 +149,7 @@ def download_each_link(driver, downloadLinks, download_dir, classe, date):
                 return True
         
         # Log error if the file is not downloaded within the timeout
-        context = "is_file_downloaded: File expected to be download but it wasnt"
+        context = "is_file_downloaded"  # Fixed context name
         error.log_error(classe, date, context)
         return False
 
@@ -179,13 +179,13 @@ def download_each_link(driver, downloadLinks, download_dir, classe, date):
                 
                 # Wait for the file to be downloaded
                 if not is_file_downloaded(download_dir, sizeBeforeDownload=initialSize, timeout=30, classe=classe, date=date):
-                    error.log_error(classe, date, context="is_file_downloaded")
+                    error.log_error(classe, date, context="download_each_link")  # Fixed context name
 
                 # Close the current window and switch back to the main window to access other links
                 reset_window_and_frame(driver)
 
     except Exception:
-        error.log_error(classe, date, context=f"Error in download_each_link")
+        error.log_error(classe, date, context="download_each_link")  # Fixed context name
 
 def more_download_links_pages(driver):
     try:
