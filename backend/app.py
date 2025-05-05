@@ -101,18 +101,19 @@ def main():
                 error.log_error(classe, date, "fill_filters")
                 continue
             
+            link.there_are_links(driver, classe, date)
             # Check if there are links for download before starting the whole process
-            try:
-                if link.there_are_links(driver):
-                    link.download(driver, download_dir, classe, date)
-                    try:
-                        files.move_files(download_dir, classe, date, link.files_properly_downloaded)
-                    except Exception as e:
-                        print(f"Error while moving files for class '{classe}' and date '{date}': {e}")
-                        error.log_error(classe, date, "move_files")
-                        continue
-            except Exception as e:
-                continue
+            # try:
+            #     if link.there_are_links(driver, classe, date):
+            #         link.download(driver, download_dir, classe, date)
+            #         try:
+            #             files.move_files(download_dir, classe, date, link.files_properly_downloaded)
+            #         except Exception as e:
+            #             print(f"Error while moving files for class '{classe}' and date '{date}': {e}")
+            #             error.log_error(classe, date, "move_files")
+            #             continue
+            # except Exception as e:
+            #     continue
 
     # Display all errors
     try:
