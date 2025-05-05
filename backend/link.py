@@ -1,13 +1,57 @@
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import TimeoutException, NoSuchElementException
 import time
 import re
 import os
 import error as error
 
 files_properly_downloaded = 0
+
+def message_or_download_link_present(driver):
+    print("-> Checking for message or download link presence...")
+    # Check for no results message
+    try:
+        if driver.find_element(By.XPATH, "//div[contains(@class, 'aviso espacamentoCimaBaixo centralizado fonteNegrito') and contains(text(), 'Não foi encontrado nenhum resultado correspondente à busca realizada.')]"):
+            print("No download link found")
+            return "no_results_message"
+    except NoSuchElementException:
+        pass
+
+    # Check for download link
+    try:
+        if driver.find_element(By.XPATH, "//a[@title='Download' and contains(@class, 'esajLinkLogin')]"):
+            print("Download link found.")
+            return "download_link"  
+    except NoSuchElementException:
+        pass
+
+    return None
+
+def there_are_links(driver, classe, date):
+    print("-> Checking if there are links...")
+    try:
+        result = WebDriverWait(driver, 10).until(message_or_download_link_present)
+
+        if result == "no_results_message":
+            print("No files available for download")  # Fixed typo in "available"
+            return False
+
+        if result == "download_link":
+            print("Files available for download")  # Fixed typo in "available"
+            return True
+
+        else:
+            error.log_error(classe, date, context="there_are_links: No results message or download link not found")
+
+    except TimeoutException as e:
+        print(f"link -> there_are_links: Timeout waiting for message or download link: {str(e)}")
+        error.log_error(classe, date, context="there_are_links: Timeout waiting for message or download link")   
+        raise
+    except Exception as e:
+        print(f"Unexpected error while checking for file links: {str(e)}")
+        raise
 
 def get_download_links(driver, previousNames, classe, date):
     def wait_for_updated_links(driver):
