@@ -1,27 +1,12 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.common.by import By
-from selenium.common.exceptions import TimeoutException
 from datetime import datetime, timedelta
 import os
 import form as form
-import download as download
+import link as link
 import files as files
 import error as error
-
-def ThereAreFileLinks(driver):
-    try:
-        no_results_message = driver.find_element(By.XPATH, "//div[contains(@class, 'aviso espacamentoCimaBaixo centralizado fonteNegrito') and contains(text(), 'Não foi encontrado nenhum resultado correspondente à busca realizada.')]")
-        if no_results_message:
-            print(" NO Files avaiable for download")
-            return False
-    except TimeoutException:
-        print("Timeout while checking for file links.")
-        return False
-    except Exception as e:
-        print(f" Files avaiable for download")
-        return True
         
 def iterate_error_log(driver, download_dir):
     counter = 0
@@ -56,17 +41,15 @@ def iterate_error_log(driver, download_dir):
           
         # Check if there are links for download before starting the whole process
         try:
-            if ThereAreFileLinks(driver):
-                download.download(driver, download_dir, classe, date)
+            if link.present(driver):
+                link.download(driver, download_dir, classe, date)
                 try:
-                    files.move_files(download_dir, classe, date, download.files_properly_downloaded)
+                    files.move_files(download_dir, classe, date, link.files_properly_downloaded)
                 except Exception as e:
                     print(f"Error while moving files for class '{classe}' and date '{date}': {e}")
                     error.log_error(classe, date, "move_files")
                     continue
         except Exception as e:
-            print(f"Error while checking for file links or downloading files for class '{classe}' and date '{date}': {e}")
-            error.log_error(classe, date, "ThereAreFileLinks or download")
             continue
 
 def main():
@@ -101,7 +84,7 @@ def main():
     # Start WebDriver
     driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
     driver.get(URL)
-    driver.maximize_window()
+    #driver.maximize_window()
 
     # Loop through each class and date
     for classe in classes:
@@ -117,20 +100,19 @@ def main():
                 error.log_error(classe, date, "fill_filters")
                 continue
             
-            # Check if there are links for download before starting the whole process
-            try:
-                if ThereAreFileLinks(driver):
-                    download.download(driver, download_dir, classe, date)
-                    try:
-                        files.move_files(download_dir, classe, date, download.files_properly_downloaded)
-                    except Exception as e:
-                        print(f"Error while moving files for class '{classe}' and date '{date}': {e}")
-                        error.log_error(classe, date, "move_files")
-                        continue
-            except Exception as e:
-                print(f"Error while checking for file links or downloading files for class '{classe}' and date '{date}': {e}")
-                error.log_error(classe, date, "ThereAreFileLinks or download")
-                continue
+            link.present(driver, classe, date)
+            # Check if there are links for download before starting the whole processa
+            # try:
+            #     if link.there_are_links(driver, classe, date):
+            #         link.download(driver, download_dir, classe, date)
+            #         try:
+            #             files.move_files(download_dir, classe, date, link.files_properly_downloaded)
+            #         except Exception as e:
+            #             print(f"Error while moving files for class '{classe}' and date '{date}': {e}")
+            #             error.log_error(classe, date, "move_files")
+            #             continue
+            # except Exception as e:
+            #     continue
 
     # Display all errors
     try:

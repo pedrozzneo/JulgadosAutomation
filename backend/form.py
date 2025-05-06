@@ -119,7 +119,7 @@ def fill_filters(driver, classe, date):
         if classe == "Usucapião":  # Only for "Usucapião" class
             fill_assunto(driver, classe, date)
         submit(driver, classe, date)
-        print("✅ Filled out the filters form")
-        return  # Exit the function if successful
+        print("✅ Fill form")
     except Exception:
-        print(f"❌ Filled out the filters form")
+        print(f"❌ Fill form")
+
