@@ -41,7 +41,7 @@ def iterate_error_log(driver, download_dir):
           
         # Check if there are links for download before starting the whole process
         try:
-            if link.there_are_links(driver):
+            if link.present(driver):
                 link.download(driver, download_dir, classe, date)
                 try:
                     files.move_files(download_dir, classe, date, link.files_properly_downloaded)
@@ -84,7 +84,7 @@ def main():
     # Start WebDriver
     driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
     driver.get(URL)
-    driver.maximize_window()
+    #driver.maximize_window()
 
     # Loop through each class and date range
     for classe in classes:
@@ -101,8 +101,8 @@ def main():
                 error.log_error(classe, date, "fill_filters")
                 continue
             
-            link.there_are_links(driver, classe, date)
-            # Check if there are links for download before starting the whole process
+            link.present(driver, classe, date)
+            # Check if there are links for download before starting the whole processa
             # try:
             #     if link.there_are_links(driver, classe, date):
             #         link.download(driver, download_dir, classe, date)

@@ -123,8 +123,8 @@ def fill_filters(driver, classe, current_date_str, max_retries=3):
         if classe == "Usucapião":  # Only for "Usucapião" class
             fill_assunto(classe, driver)
         submit(driver)
-        print("✅ Filled out the filters form")
+        print("✅ Fill form")
         return  # Exit the function if successful
     except Exception as e:
         error.log_error(classe, current_date_str, context = "fill_filters")
-        print(f"❌ Filled out the filters form")
+        print(f"❌ Fill form")
