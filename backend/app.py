@@ -20,7 +20,6 @@ def iterate_error_log(driver, download_dir):
                     print(f"Error displaying error log: {e}")
 
         entry = error.error_log.pop(0)  # Remove the first item
-        # Example format: "Class: Usucapiao, Date: 2025-04-15, Context: fill_filters: TimeOutException"
         
         # Split and extract
         parts = entry.split(", ")
@@ -69,7 +68,7 @@ def main():
     interval = endDate - startingDate
 
     # Temporary download directory before being moved to the specific date folder
-    download_dir = r"C:\Users\nikao\Desktop\Julgados"
+    download_dir = r"C:\Users\nikao\Desktop\julgados\pdfs"
     if not os.path.exists(download_dir):
         os.makedirs(download_dir)
 
@@ -89,30 +88,38 @@ def main():
     # Loop through each class and date
     for classe in classes:
         for i in range(interval.days + 1):
+            
+            # Calculate the date for the current iteration and show importanto information
             date = (startingDate + timedelta(days=i)).strftime("%d/%m/%Y")
             print(f"\n{classe.upper()} ON {date.upper()}: \n")
             
-            # Fill out all the fillters
+            # Fill out forms's fillters
             try:
-                form.fill_filters(driver, classe, date)
+                form.fill_filters(driver, classe, date)  
             except Exception as e:
                 print(f"Error while filling filters for class '{classe}' and date '{date}': {e}")
                 error.log_error(classe, date, "fill_filters")
                 continue
-            
-            link.present(driver, classe, date)
-            # Check if there are links for download before starting the whole processa
-            # try:
-            #     if link.there_are_links(driver, classe, date):
-            #         link.download(driver, download_dir, classe, date)
-            #         try:
-            #             files.move_files(download_dir, classe, date, link.files_properly_downloaded)
-            #         except Exception as e:
-            #             print(f"Error while moving files for class '{classe}' and date '{date}': {e}")
-            #             error.log_error(classe, date, "move_files")
-            #             continue
-            # except Exception as e:
-            #     continue
+
+            # First check if there are links for download
+            try:
+                if link.present(driver, classe, date):    
+                    # Download each found link
+                    try:
+                        link.download(driver, download_dir, classe, date)
+                    except Exception:
+                        print("app -> link.download()")
+                        continue
+                    
+                    # Move the downloaded files to the respective folder or delete them if they already exist
+                    try:
+                        files.move_files(download_dir, classe, date, link.files_properly_downloaded)
+                    except Exception:
+                        print("app -> files.move_files()")
+                        continue
+            except Exception:
+                print("app -> link.present()")
+                continue
 
     # Display all errors
     try:
