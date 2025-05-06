@@ -1,4 +1,1 @@
-node_modules/
-pdfs/
-upgrades
-thingsThatCouldComeInHandy
+__pycache__/
