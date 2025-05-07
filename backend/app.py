@@ -3,10 +3,10 @@ from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
 from datetime import datetime, timedelta
 import os
-import form as form
-import link as link
-import files as files
-import error as error
+import form 
+import link
+import files
+import error 
         
 def iterate_error_log(driver, download_dir):
     counter = 0
@@ -56,11 +56,9 @@ def main():
 
     # List all classes to be searched
     classes = ["Ação Civil Pública", "Ação Civil de Improbidade Administrativa", "Ação Civil Coletiva", "Ação Popular", "Mandado de Segurança Coletivo", "Usucapião"]
-    classes = ["Ação Civil Pública"]
     print(f"classes: {classes}")
 
     startingDate = datetime.strptime("01/01/2022", "%d/%m/%Y")
-    endDate = datetime.now()
     endDate = datetime.strptime("31/12/2022", "%d/%m/%Y")
     print(f"dates: from {startingDate} to {endDate}")
 
@@ -97,8 +95,7 @@ def main():
             try:
                 form.fill_filters(driver, classe, date)  
             except Exception as e:
-                print(f"Error while filling filters for class '{classe}' and date '{date}': {e}")
-                error.log_error(classe, date, "fill_filters")
+                print("app -> main() -> form.fill_filters()")
                 continue
 
             # First check if there are links for download
@@ -108,17 +105,17 @@ def main():
                     try:
                         link.download(driver, download_dir, classe, date)
                     except Exception:
-                        print("app -> link.download()")
+                        print("app -> main() -> link.download()")
                         continue
-                    
+
                     # Move the downloaded files to the respective folder or delete them if they already exist
                     try:
                         files.move_files(download_dir, classe, date, link.files_properly_downloaded)
                     except Exception:
-                        print("app -> files.move_files()")
+                        print("app -> main() -> files.move_files()")
                         continue
             except Exception:
-                print("app -> link.present()")
+                print("app -> main() -> link.present()")
                 continue
 
     # Display all errors
