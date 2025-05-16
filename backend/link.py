@@ -24,7 +24,7 @@ def message_or_link(driver):
 
 def present(driver, classe, date):
     try:
-        result = WebDriverWait(driver, 10).until(message_or_link)
+        result = WebDriverWait(driver, 80).until(message_or_link)
         if result == "message":
             print("❌ Links to download")  
             return False
@@ -32,7 +32,8 @@ def present(driver, classe, date):
             print("✅ Links to download")  
             return True
         else:
-            error.log_error(classe, date, context="there_are_links: No results message or download link not found")
+            error.log_error(classe, date, context="there_are_links: Nothing was identified")
+            return False
     except TimeoutException:
         error.log_error(classe, date, context="there_are_links: Timeout waiting for message or download link")   
         raise
