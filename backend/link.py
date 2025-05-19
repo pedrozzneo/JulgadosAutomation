@@ -78,19 +78,24 @@ def get_download_links(driver, previousNames, classe, date):
     except TimeoutException:
         print("🔴 Timeout: No new valid links appeared within the wait period.")
         error.log_error(classe, date, context="get_download_links: Timeout waiting for new download links")
-        return []
+        raise
 
 def get_link_names(downloadLinks, classe, date):
-    linkNames = []  # Reset previous names for the new set of links
-    if downloadLinks:
-        for link in downloadLinks:
-            try:
-                name = link.get_attribute("name")
-                linkNames.append(name)
-            except Exception as e:
-                print(f"Error with link {link}: {e}")
-                error.log_error(classe, date, context="get_link_names")  # Fixed context name
-    return linkNames
+    try:
+        linkNames = []
+        if downloadLinks:
+            for link in downloadLinks:
+                try:
+                    name = link.get_attribute("name")
+                    linkNames.append(name)
+                except Exception as e:
+                    print(f"Error with link {link}: {e}")
+                    error.log_error(classe, date, context="get_link_names: individual link error")
+                    raise
+        return linkNames
+    except Exception as e:
+        error.log_error(classe, date, context=f"get_link_names: general error - {str(e)}")
+        raise
 
 def get_expected_downloads(driver, previousValue, classe, date):
     def valid_text_changed(d):
@@ -123,11 +128,11 @@ def get_expected_downloads(driver, previousValue, classe, date):
             return expectedDownloads, fullDownloadsMessage
         else:
             error.log_error("Regex", "Failed to extract numbers", context="expected_downloads")
-            return None, fullDownloadsMessage
+            raise Exception("Failed to extract numbers from download message")
 
     except Exception as e:
         error.log_error(None, None, context=f"Error in get_expected_downloads: {str(e)}")
-        return None, fullDownloadsMessage
+        raise
     
     except TimeoutException:
         print("🔴 Timeout: No new valid links appeared within the wait period.")
@@ -165,6 +170,7 @@ def download_each_link(driver, downloadLinks, download_dir, classe, date):
         except:
             error.log_error(classe, date, context="getDownloadButton")  # Fixed context name
             reset_window_and_frame(driver)
+            raise
 
     def is_file_downloaded(download_dir, sizeBeforeDownload, timeout=30, classe=None, date=None):
         # Track how long its been since I start comparing, so I can stop if it takes too long
@@ -214,7 +220,9 @@ def download_each_link(driver, downloadLinks, download_dir, classe, date):
                 reset_window_and_frame(driver)
 
     except Exception:
+        reset_window_and_frame(driver)
         error.log_error(classe, date, context="download_each_link")  # Fixed context name
+        raise
 
 def more_download_links_pages(driver):
     try:

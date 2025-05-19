@@ -80,14 +80,15 @@ def main():
     download_dir = r"C:\Users\nikao\Documents\Code\JulgadosAutomation\others\pdfs"
 
     driver = set_driver(download_dir)
-    driver.get("https://esaj.tjsp.jus.br/cjpg")
+    URL = "https://esaj.tjsp.jus.br/cjpg"
+    driver.get(URL)
     #driver.maximize_window()
 
     # Loop through each class and date
     for classe in classes:
         for i in range(interval.days + 1):
             
-            # Calculate the date for the current iteration and show importanto information
+            # Calculate the date for the current iteration and show important information
             date = (startingDate + timedelta(days=i)).strftime("%d/%m/%Y")
             print(f"\n{classe.upper()} ON {date.upper()}: \n")
             
@@ -95,7 +96,7 @@ def main():
             try:
                 form.fill_filters(driver, classe, date)  
             except Exception as e:
-                print("app -> main() -> form.fill_filters()")
+                driver.get(URL)
                 continue
 
             # First check if there are links for download
@@ -115,7 +116,7 @@ def main():
                         print("app -> main() -> files.move_files()")
                         continue
             except Exception:
-                print("app -> main() -> link.present()")
+                driver.get(URL)
                 continue
 
     # Display all errors

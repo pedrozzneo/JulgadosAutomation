@@ -121,5 +121,5 @@ def fill_filters(driver, classe, date):
         submit(driver, classe, date)
         print("✅ Fill form")
     except Exception:
-        print(f"❌ Fill form")
+        print(f"⚠️ Fill form")
 
