@@ -51,25 +51,7 @@ def iterate_error_log(driver, download_dir):
         except Exception as e:
             continue
 
-def main():
-    URL = "https://esaj.tjsp.jus.br/cjpg"
-
-    # List all classes to be searched
-    classes = ["Ação Civil Pública", "Ação Civil de Improbidade Administrativa", "Ação Civil Coletiva", "Ação Popular", "Mandado de Segurança Coletivo", "Usucapião"]
-    print(f"classes: {classes}")
-
-    startingDate = datetime.strptime("01/01/2016", "%d/%m/%Y")
-    endDate = datetime.strptime("31/12/2016", "%d/%m/%Y")
-    print(f"dates: from {startingDate} to {endDate}")
-
-    # Calculate the interval between start_date and end_date
-    interval = endDate - startingDate
-
-    # Temporary download directory before being moved to the specific date folder
-    download_dir = r"C:\Users\nikao\Desktop\julgados\pdfs"
-    if not os.path.exists(download_dir):
-        os.makedirs(download_dir)
-
+def set_driver(download_dir):
     # Set Chrome options
     options = webdriver.ChromeOptions()
     options.add_experimental_option('prefs', {
@@ -80,7 +62,25 @@ def main():
 
     # Start WebDriver
     driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
-    driver.get(URL)
+    return driver
+
+def main():
+    # List all classes to be searched
+    classes = ["Ação Civil Pública", "Ação Civil de Improbidade Administrativa", "Ação Civil Coletiva", "Ação Popular", "Mandado de Segurança Coletivo", "Usucapião"]
+    print(f"classes: {classes}")
+
+    startingDate = datetime.strptime("03/01/2023", "%d/%m/%Y")
+    endDate = datetime.strptime("31/12/2023", "%d/%m/%Y")
+    print(f"dates: from {startingDate} to {endDate}")
+
+    # Calculate the interval between start_date and end_date
+    interval = endDate - startingDate
+    
+    # Temporary download directory before being moved to the specific date folder
+    download_dir = r"C:\Users\nikao\Documents\Code\JulgadosAutomation\others\pdfs"
+
+    driver = set_driver(download_dir)
+    driver.get("https://esaj.tjsp.jus.br/cjpg")
     #driver.maximize_window()
 
     # Loop through each class and date

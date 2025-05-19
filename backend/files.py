@@ -57,18 +57,18 @@ def move_files(download_dir, classe, date, quantityOfFiles):
         error.log_error(classe, date, "move_files: General error")
         print(f"Error while moving files: {e}")
 
-def delete_empty_dirs(path, current_level=1, max_level=5):
+def delete_empty_dirs(download_dir, current_level=1, max_level=5):
     if current_level > max_level:
         return
     # List all entries in the current directory
-    for entry in os.listdir(path):
-        full_path = os.path.join(path, entry)
+    for entry in os.listdir(download_dir):
+        full_path = os.path.join(download_dir, entry)
         if os.path.isdir(full_path):
             delete_empty_dirs(full_path, current_level + 1, max_level)
     # After processing subdirectories, check if current directory is empty
-    if current_level > 1 and not os.listdir(path):
-        os.rmdir(path)
-        print(f"Deleted empty directory: {path}")
+    if current_level > 1 and not os.listdir(download_dir):
+        os.rmdir(download_dir)
+        print(f"Deleted empty directory: {download_dir}")
 
-path = r"C:\Users\nikao\Desktop\julgados\pdfs"
-delete_empty_dirs(path)
+download_dir = r"C:\Users\nikao\Documents\Code\JulgadosAutomation\others\pdfs"
+delete_empty_dirs(download_dir)
