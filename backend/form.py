@@ -43,14 +43,12 @@ def fill_date(driver, classe, date):
         )
         start_date.clear()
         start_date.send_keys(date)
-        #print(f"-> Filled the start date: {current_date_str}")
 
         end_date = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.ID, "iddadosConsulta.dtFim"))
         )
         end_date.clear()
         end_date.send_keys(date)
-        #print(f"-> Filled the end date: {current_date_str}")
     
     except Exception as e:
         error.log_error(classe, date, context= "forms -> fill_date")
@@ -62,7 +60,6 @@ def submit(driver, classe, date):
             EC.element_to_be_clickable((By.ID, "pbSubmit"))
         )
         consultar_button.click()
-        #print(f"-> Consultar button clicked")
     
     except Exception as e: 
         error.log_error(classe, date, context= "forms -> submit")
@@ -74,33 +71,27 @@ def fill_assunto(driver, classe, date):
             EC.element_to_be_clickable((By.ID, "botaoLimpar_assunto"))
         )
         clearButton.click()
-        #print("-> Clicked on the 'Clear' button for 'assunto'")
 
         searchButton = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.ID, "botaoProcurar_assunto"))
         )
         searchButton.click()
-        #print("-> Clicked on the 'Search' button for 'assunto'")
 
         search_input = WebDriverWait(driver, 10).until(
             EC.visibility_of_element_located((By.ID, "assunto_treeSelectFilter"))
         )
         search_input.send_keys("especial coletiva")
         search_input.send_keys(Keys.RETURN)
-        #print("-> Searched for 'especial coletiva' in 'assunto'")
 
         checkboxAssunto = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.XPATH, "//span[@id='assunto_tree_node_10460' and contains(@class, 'checkable')]"))
         )
         checkboxAssunto.click()
-        #print("-> Selected the checkbox for 'Usucapião Especial Coletiva'")
 
         selecionarButtonAssunto = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.XPATH, "//div[@id='assunto_treeSelectContainer']//input[@type='button' and @value='Selecionar' and contains(@class, 'spwBotaoDefaultGrid')]"))
         )
-        #print("-> Found the 'Selecionar' button for 'assunto'")
         selecionarButtonAssunto.click()
-        #print("-> Clicked on the 'Selecionar' button for 'assunto'")
     
     except Exception as e: 
         error.log_error(classe, date, context= "forms -> fill_assunto")
@@ -116,4 +107,5 @@ def fill_filters(driver, classe, date):
         print("✅ Fill form")
     except Exception:
         print(f"⚠️ Fill form")
+        raise
 

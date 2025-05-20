@@ -108,4 +108,5 @@ def main():
             
     error.display_error_log()
     iterate_error_log(driver, download_dir)
+    
 main()
