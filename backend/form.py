@@ -6,37 +6,31 @@ import error as error
 
 def fill_classe(driver, classe, date):
     try:
-        # All steps to fill the "Classe" field
         clearButton = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.ID, "botaoLimpar_classe"))
         )
         clearButton.click()
-        #print("-> Clicked on the 'Clear' button")
-
+        
         searchButton = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.ID, "botaoProcurar_classe"))
         )
         searchButton.click()
-        #print("-> Clicked on the 'Search' button")
 
         search_input = WebDriverWait(driver, 10).until(
             EC.visibility_of_element_located((By.ID, "classe_treeSelectFilter"))
         )
         search_input.send_keys(classe)
         search_input.send_keys(Keys.RETURN)
-        #print(f"-> Searched for the class: {classe}")
 
         checkboxClass = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.XPATH, f"//span[contains(@class, 'checkable') and text()='{classe}']"))
         )
         checkboxClass.click()
-        #print(f"-> Selected the checkbox for class: {classe}")
 
         selecionarButton = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.XPATH, "//input[@type='button' and @value='Selecionar' and contains(@class, 'spwBotaoDefaultGrid')]"))
         )
         selecionarButton.click()
-        #print("-> Clicked on the 'Selecionar' button")
 
     except Exception as e:
         error.log_error(classe, date, context= "forms -> fill_classe")

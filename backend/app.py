@@ -87,45 +87,25 @@ def main():
     # Loop through each class and date
     for classe in classes:
         for i in range(interval.days + 1):
-            
-            # Calculate the date for the current iteration and show important information
-            date = (startingDate + timedelta(days=i)).strftime("%d/%m/%Y")
-            print(f"\n{classe.upper()} ON {date.upper()}: \n")
-            
-            # Fill out forms's fillters
             try:
-                form.fill_filters(driver, classe, date)  
-            except Exception as e:
-                driver.get(URL)
-                continue
+                # Calculate the date for the current iteration and show important information
+                date = (startingDate + timedelta(days=i)).strftime("%d/%m/%Y")
+                print(f"\n{classe.upper()} ON {date.upper()}: \n")
 
-            # First check if there are links for download
-            try:
-                if link.present(driver, classe, date):    
+                # Fill out forms's fillters
+                form.fill_filters(driver, classe, date)  
+
+                # Check if there are links for download
+                if link.present(driver, classe, date): 
                     # Download each found link
-                    try:
-                        link.download(driver, download_dir, classe, date)
-                    except Exception:
-                        print("app -> main() -> link.download()")
-                        continue
+                    link.download(driver, download_dir, classe, date)
 
                     # Move the downloaded files to the respective folder or delete them if they already exist
-                    try:
-                        files.move_files(download_dir, classe, date, link.files_properly_downloaded)
-                    except Exception:
-                        print("app -> main() -> files.move_files()")
-                        continue
+                    files.move_files(download_dir, classe, date, link.files_properly_downloaded)
             except Exception:
                 driver.get(URL)
-                continue
-
-    # Display all errors
-    try:
-        error.display_error_log()
-    except Exception as e:
-        print(f"Error displaying error log: {e}")
-
-
+                continue 
+            
+    error.display_error_log()
     iterate_error_log(driver, download_dir)
-
 main()
