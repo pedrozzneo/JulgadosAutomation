@@ -10,32 +10,34 @@ import error as error
 files_properly_downloaded = 0
 
 def message_or_link(driver):   
+    # Look for message reference
     try:
-        # Message reference
         driver.find_element(By.XPATH, "//div[contains(@class, 'aviso espacamentoCimaBaixo centralizado fonteNegrito') and contains(text(), 'Não foi encontrado nenhum resultado correspondente à busca realizada.')]") 
         return "message"
     except:
-        try:
-            # link reference
-            driver.find_element(By.XPATH, "//a[@title='Visualizar Inteiro Teor']") 
-            return "link"
-        except:
-            return None
+        pass
+    
+    # Look for link reference
+    try:
+        driver.find_element(By.XPATH, "//a[@title='Visualizar Inteiro Teor']") 
+        return "link"
+    except:
+        return None
 
 def present(driver, classe, date):
     try:
+        # Find out if we have links or message (represents absence of links)
         result = WebDriverWait(driver, 80).until(message_or_link)
-        if result == "message":
-            print("❌ Links to download")  
-            return False
+
+        # Treat each possibility
         if result == "link":
             print("✅ Links to download")  
             return True
-        else:
-            error.log_error(classe, date, context="there_are_links: Nothing was identified")
+        if result == "message":
+            print("❌ Links to download")  
             return False
-    except TimeoutException:
-        error.log_error(classe, date, context="there_are_links: Timeout waiting for message or download link")   
+    except Exception as e:
+        error.log_error(classe, date, context=f"link -> present: {e}")   
         raise
 
 def get_download_links(driver, previousNames, classe, date):
