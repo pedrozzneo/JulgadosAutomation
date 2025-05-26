@@ -252,6 +252,7 @@ def download(driver, download_dir, classe, date):
     while True:
         try:
             downloadLinks = get_download_links(driver, linkNames, classe, date)
+            
             linkNames = get_link_names(downloadLinks, classe, date)
             
             expectedDownloads = get_expected_downloads(driver, expectedDownloads[1], classe, date)
@@ -259,15 +260,13 @@ def download(driver, download_dir, classe, date):
             found_matches_expected(downloadLinks, expectedDownloads[0], classe, date)
 
             download_each_link(driver, downloadLinks, download_dir, classe, date)
-
+            
             if more_download_links_pages(driver): 
-                # Resets some stuffs
                 continue
 
             # Just exit the whole loop if there isn't any other download link pages
             break
         except Exception as e:
-            error.log_error(classe, date, context=f"Error in download loop: {str(e)}")
-            break
+            raise
 
 

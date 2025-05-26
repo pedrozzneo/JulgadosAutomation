@@ -105,6 +105,7 @@ def main():
                     # Move the downloaded files to the respective folder or delete them if they already exist
                     files.move_files(download_dir, classe, date, link.files_properly_downloaded)
             except Exception:
+                driver.quit()
                 driver = set_driver(download_dir)
                 URL = "https://esaj.tjsp.jus.br/cjpg"
                 driver.get(URL)
