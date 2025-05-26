@@ -69,7 +69,7 @@ def main():
     classes = ["Ação Civil Pública", "Ação Civil de Improbidade Administrativa", "Ação Civil Coletiva", "Ação Popular", "Mandado de Segurança Coletivo", "Usucapião"]
     print(f"classes: {classes}")
 
-    startingDate = datetime.strptime("03/01/2023", "%d/%m/%Y")
+    startingDate = datetime.strptime("11/01/2023", "%d/%m/%Y")
     endDate = datetime.strptime("31/12/2023", "%d/%m/%Y")
     print(f"dates: from {startingDate} to {endDate}")
 
@@ -88,6 +88,8 @@ def main():
     for classe in classes:
         for i in range(interval.days + 1):
             try:
+                if(i == 2):
+                    driver.find_element("xpath", "//input[@id='tipo23Pesquisa']/following-sibling::label[1]")
                 # Calculate the date for the current iteration and show important information
                 date = (startingDate + timedelta(days=i)).strftime("%d/%m/%Y")
                 print(f"\n{classe.upper()} ON {date.upper()}: \n")
@@ -103,7 +105,10 @@ def main():
                     # Move the downloaded files to the respective folder or delete them if they already exist
                     files.move_files(download_dir, classe, date, link.files_properly_downloaded)
             except Exception:
+                driver = set_driver(download_dir)
+                URL = "https://esaj.tjsp.jus.br/cjpg"
                 driver.get(URL)
+                print(f"resettttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt")
                 continue 
             
     error.display_error_log()
