@@ -69,15 +69,15 @@ def main():
     classes = ["Ação Civil Pública", "Ação Civil de Improbidade Administrativa", "Ação Civil Coletiva", "Ação Popular", "Mandado de Segurança Coletivo", "Usucapião"]
     print(f"classes: {classes}")
 
-    startingDate = datetime.strptime("11/01/2023", "%d/%m/%Y")
-    endDate = datetime.strptime("31/12/2023", "%d/%m/%Y")
+    startingDate = datetime.strptime("01/01/2016", "%d/%m/%Y")
+    endDate = datetime.strptime("31/12/2016", "%d/%m/%Y")
     print(f"dates: from {startingDate} to {endDate}")
 
     # Calculate the interval between start_date and end_date
     interval = endDate - startingDate
     
     # Temporary download directory before being moved to the specific date folder
-    download_dir = r"C:\Users\nikao\Documents\Code\JulgadosAutomation\others\pdfs"
+    download_dir = r"C:\Users\nikao\Documents\pdfs"
 
     driver = set_driver(download_dir)
     URL = "https://esaj.tjsp.jus.br/cjpg"
