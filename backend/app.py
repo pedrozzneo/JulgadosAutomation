@@ -25,6 +25,9 @@ def scrape(driver, classe, date, download_dir):
         # Calculate the date for the current iteration and show important information
         print(f"\n{classe.upper()} ON {date.upper()}: \n")
 
+        if date == "02/01/2017" or date == "05/01/2017":
+           driver.find_element("xpath", "//button[@id='btnFedwqchar']")
+
         # Fill out forms's fillters
         form.fill_filters(driver, classe, date)  
 
@@ -37,10 +40,7 @@ def scrape(driver, classe, date, download_dir):
             files.move_files(download_dir, classe, date, link.files_properly_downloaded)
 
     except Exception:
-        driver.quit()
-        driver = set_driver(download_dir)
-        driver.get("https://esaj.tjsp.jus.br/cjpg")
-        print("reset") 
+        raise
 
 def iterate_error_log(driver, download_dir):
     # Display the error log
@@ -70,7 +70,7 @@ def main():
     print(f"classes: {classes}")
 
     # List all dates to be searched
-    startingDate = datetime.strptime("10/01/2017", "%d/%m/%Y")
+    startingDate = datetime.strptime("01/01/2017", "%d/%m/%Y")
     endDate = datetime.strptime("10/01/2017", "%d/%m/%Y")
     interval = (endDate - startingDate).days
     print(f"dates: from {startingDate} to {endDate}")
@@ -86,15 +86,23 @@ def main():
     # Loop through each class and date
     for classe in classes:
         for i in range(interval + 1):
-            # Calculate the date for the current iteration and format it
-            date = (startingDate + timedelta(days=i)).strftime("%d/%m/%Y")
-            
-            # Scrape the current class and date
-            scrape(driver, classe, date, download_dir)
+            try:
+                # Calculate the date for the current iteration and format it
+                date = (startingDate + timedelta(days=i)).strftime("%d/%m/%Y")
+                
+                # Scrape the current class and date
+                scrape(driver, classe, date, download_dir)
 
-            # Display the error log every 20 iterations
-            if i % 20 == 0:
-                error.display_error_log()
+                # Display the error log every 20 iterations
+                if i % 20 == 0:
+                    error.display_error_log()
+
+            except Exception:
+                # Reset everything
+                driver.quit()
+                driver = set_driver(download_dir)
+                driver.get("https://esaj.tjsp.jus.br/cjpg")
+                print("reset") 
                 
         # Try to solve the error in the error log
         iterate_error_log(driver, download_dir)

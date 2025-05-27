@@ -41,7 +41,6 @@ def present(driver, classe, date):
         raise
 
 def get_download_links_and_names(driver, previousNames, classe, date):
-    
     def valid_links_changed(driver):
         try:
             if previousNames:
@@ -67,9 +66,7 @@ def get_download_links_and_names(driver, previousNames, classe, date):
     try:
         # Locate all the download links again (they might be stale otherwise)
         downloadLinks, currentNames = WebDriverWait(driver, 80).until(valid_links_changed)
-
         return downloadLinks, currentNames
-
     except TimeoutException:
         print("🔴 Timeout: No new valid links appeared within the wait period.")
         error.log_error(classe, date, context="get_download_links: Timeout waiting for new download links")
