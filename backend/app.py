@@ -70,7 +70,7 @@ def main():
     print(f"classes: {classes}")
 
     # List all dates to be searched
-    startingDate = datetime.strptime("01/01/2017", "%d/%m/%Y")
+    startingDate = datetime.strptime("10/01/2017", "%d/%m/%Y")
     endDate = datetime.strptime("10/01/2017", "%d/%m/%Y")
     interval = (endDate - startingDate).days
     print(f"dates: from {startingDate} to {endDate}")
