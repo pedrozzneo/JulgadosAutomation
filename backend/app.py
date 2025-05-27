@@ -98,5 +98,8 @@ def main():
                 
         # Try to solve the error in the error log
         iterate_error_log(driver, download_dir)
+    
+    # Clean up empty folders (needs checking if it works)
+    # files.delete_empty_dirs(download_dir)
 
 main()

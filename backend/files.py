@@ -69,6 +69,3 @@ def delete_empty_dirs(download_dir, current_level=1, max_level=5):
     if current_level > 1 and not os.listdir(download_dir):
         os.rmdir(download_dir)
         print(f"Deleted empty directory: {download_dir}")
-
-download_dir = r"C:\Users\nikao\Documents\Code\JulgadosAutomation\others\pdfs"
-delete_empty_dirs(download_dir)
