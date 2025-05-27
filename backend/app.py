@@ -25,9 +25,6 @@ def scrape(driver, classe, date, download_dir):
         # Calculate the date for the current iteration and show important information
         print(f"\n{classe.upper()} ON {date.upper()}: \n")
 
-        if date == "02/01/2017" or date == "05/01/2017":
-           driver.find_element("xpath", "//button[@id='btnFedwqchar']")
-
         # Fill out forms's fillters
         form.fill_filters(driver, classe, date)  
 
