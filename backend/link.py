@@ -40,7 +40,7 @@ def present(driver, classe, date):
         error.log_error(classe, date, context=f"link -> present: {e}")   
         raise
 
-def get_download_links(driver, previousNames, classe, date):
+def get_download_links_and_names(driver, previousNames, classe, date):
     
     def valid_links_changed(driver):
         try:
@@ -59,7 +59,7 @@ def get_download_links(driver, previousNames, classe, date):
                 return False
             else:
                 print("✅ Link novo detectado!")
-                return currentLinks
+                return currentLinks, currentNames
 
         except Exception as e:
             print("🟡 Link ainda nao mudou")
@@ -67,32 +67,13 @@ def get_download_links(driver, previousNames, classe, date):
 
     try:
         # Locate all the download links again (they might be stale otherwise)
-        downloadLinks = WebDriverWait(driver, 80).until(valid_links_changed)
-        currentNames = [link.get_attribute("name") for link in downloadLinks]
-        print("Current:", currentNames)
+        downloadLinks, currentNames = WebDriverWait(driver, 80).until(valid_links_changed)
 
-        return downloadLinks
+        return downloadLinks, currentNames
 
     except TimeoutException:
         print("🔴 Timeout: No new valid links appeared within the wait period.")
         error.log_error(classe, date, context="get_download_links: Timeout waiting for new download links")
-        raise
-
-def get_link_names(downloadLinks, classe, date):
-    try:
-        linkNames = []
-        if downloadLinks:
-            for link in downloadLinks:
-                try:
-                    name = link.get_attribute("name")
-                    linkNames.append(name)
-                except Exception as e:
-                    print(f"Error with link {link}: {e}")
-                    error.log_error(classe, date, context="get_link_names: individual link error")
-                    raise
-        return linkNames
-    except Exception as e:
-        error.log_error(classe, date, context=f"get_link_names: general error - {str(e)}")
         raise
 
 def get_expected_downloads(driver, previousValue, classe, date):
@@ -247,9 +228,7 @@ def download(driver, download_dir, classe, date):
     
     while True:
         try:
-            downloadLinks = get_download_links(driver, linkNames, classe, date)
-            
-            linkNames = get_link_names(downloadLinks, classe, date)
+            downloadLinks, linkNames = get_download_links_and_names(driver, linkNames, classe, date)
             
             expectedDownloads = get_expected_downloads(driver, expectedDownloads[1], classe, date)
 
