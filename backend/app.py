@@ -6,6 +6,7 @@ import os
 import form 
 import link
 import files
+import time
 import error 
         
 def iterate_error_log(driver, download_dir):
@@ -77,12 +78,13 @@ def main():
     interval = endDate - startingDate
     
     # Temporary download directory before being moved to the specific date folder
-    download_dir = r"C:\Users\nikao\Documents\Code\JulgadosAutomation\others\pdfs"
+    download_dir = r"C:\Users\Marlabs\Documents\pdfs"
 
     driver = set_driver(download_dir)
     URL = "https://esaj.tjsp.jus.br/cjpg"
     driver.get(URL)
-    #driver.maximize_window()
+    time.sleep(50)
+    driver.maximize_window()
 
     # Loop through each class and date
     for classe in classes:

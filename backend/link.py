@@ -43,7 +43,10 @@ def present(driver, classe, date):
 def get_download_links(driver, previousNames, classe, date):
     def wait_for_updated_links(driver):
         if valid_links_changed(driver):
-            return driver.find_elements(By.XPATH, "//a[@title='Visualizar Inteiro Teor']")
+            try:
+                return driver.find_elements(By.XPATH, "//a[@title='Visualizar Inteiro Teor']")
+            except:
+                print("wait_for_updated)links")
         return False  # Returning False tells WebDriverWait to keep waiting
 
     def valid_links_changed(driver):

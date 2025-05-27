@@ -3,6 +3,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import error as error
+import time
 
 def fill_classe(driver, classe, date):
     try:
@@ -27,10 +28,14 @@ def fill_classe(driver, classe, date):
         )
         checkboxClass.click()
 
-        selecionarButton = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.XPATH, "//input[@type='button' and @value='Selecionar' and contains(@class, 'spwBotaoDefaultGrid')]"))
-        )
-        selecionarButton.click()
+        try:
+            button = driver.find_element(By.XPATH, '//input[@value="Selecionar"]')
+            print("Found by XPath (value)")
+            # Click using JavaScript
+            driver.execute_script("arguments[0].click();", button)
+            print("Clicked using JavaScript")
+        except Exception as e:
+            print("Button not found by XPath (value)", e)
 
     except Exception as e:
         error.log_error(classe, date, context= "forms -> fill_classe")
