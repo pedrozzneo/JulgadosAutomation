@@ -70,8 +70,8 @@ def main():
     classes = ["Ação Civil Pública", "Ação Civil de Improbidade Administrativa", "Ação Civil Coletiva", "Ação Popular", "Mandado de Segurança Coletivo", "Usucapião"]
     print(f"classes: {classes}")
 
-    startingDate = datetime.strptime("11/01/2023", "%d/%m/%Y")
-    endDate = datetime.strptime("31/12/2023", "%d/%m/%Y")
+    startingDate = datetime.strptime("01/01/2018", "%d/%m/%Y")
+    endDate = datetime.strptime("31/12/2018", "%d/%m/%Y")
     print(f"dates: from {startingDate} to {endDate}")
 
     # Calculate the interval between start_date and end_date
