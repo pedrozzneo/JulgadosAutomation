@@ -33,7 +33,7 @@ def fill_classe(driver, classe, date):
         selecionarButton.click()
 
     except Exception as e:
-        error.log_error(classe, date, context= "forms -> fill_classe")
+        error.log(classe, date, context= "forms -> fill_classe")
         raise
 
 def fill_date(driver, classe, date):
@@ -51,7 +51,7 @@ def fill_date(driver, classe, date):
         end_date.send_keys(date)
     
     except Exception as e:
-        error.log_error(classe, date, context= "forms -> fill_date")
+        error.log(classe, date, context= "forms -> fill_date")
         raise
 
 def submit(driver, classe, date):
@@ -62,7 +62,7 @@ def submit(driver, classe, date):
         consultar_button.click()
     
     except Exception as e: 
-        error.log_error(classe, date, context= "forms -> submit")
+        error.log(classe, date, context= "forms -> submit")
         raise
 
 def fill_assunto(driver, classe, date):
@@ -94,7 +94,7 @@ def fill_assunto(driver, classe, date):
         selecionarButtonAssunto.click()
     
     except Exception as e: 
-        error.log_error(classe, date, context= "forms -> fill_assunto")
+        error.log(classe, date, context= "forms -> fill_assunto")
         raise
 
 def fill_filters(driver, classe, date):

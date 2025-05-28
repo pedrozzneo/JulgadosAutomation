@@ -37,29 +37,24 @@ def present(driver, classe, date):
             print("❌ Links to download")  
             return False
     except Exception as e:
-        error.log_error(classe, date, context=f"link -> present: {e}")   
+        error.log(classe, date, context=f"link -> present: {e}")   
         raise
 
 def get_download_links_and_names(driver, previousNames, classe, date):
     def valid_links_changed(driver):
         try:
-            if previousNames:
-                print("Previous:", previousNames)
-
             currentLinks = WebDriverWait(driver, 10).until(
                 EC.presence_of_all_elements_located((By.XPATH, "//a[@title='Visualizar Inteiro Teor']"))
             )
-
             currentNames = [link.get_attribute("name") for link in currentLinks]
 
-            if previousNames in currentNames:
+            if previousNames == currentNames:
                 print("🟡 Link ainda presente, nada novo.")
                 return False
             else:
                 print("✅ Link novo detectado!")
                 return currentLinks, currentNames
-
-        except Exception as e:
+        except Exception:
             print("🟡 Link ainda nao mudou")
             return False
 
@@ -67,9 +62,8 @@ def get_download_links_and_names(driver, previousNames, classe, date):
         # Locate all the download links again (they might be stale otherwise)
         downloadLinks, currentNames = WebDriverWait(driver, 80).until(valid_links_changed)
         return downloadLinks, currentNames
-    except TimeoutException:
-        print("🔴 Timeout: No new valid links appeared within the wait period.")
-        error.log_error(classe, date, context="get_download_links: Timeout waiting for new download links")
+    except Exception as e:
+        error.log(classe, date, context=f"get_download_links: {e}")
         raise
 
 def get_expected_downloads(driver, previousValue, classe, date):
@@ -97,16 +91,16 @@ def get_expected_downloads(driver, previousValue, classe, date):
             expectedDownloads = int(match.group(2)) - int(match.group(1)) + 1
             return expectedDownloads, fullDownloadsMessage
         else:
-            error.log_error("Regex", "Failed to extract numbers", context="expected_downloads")
+            error.log("Regex", "Failed to extract numbers", context="expected_downloads")
             raise Exception("Failed to extract numbers from download message")
 
     except Exception as e:
-        error.log_error(None, None, context=f"Error in get_expected_downloads: {str(e)}")
+        error.log(None, None, context=f"Error in get_expected_downloads: {str(e)}")
         raise
     
     except TimeoutException:
         print("🔴 Timeout: No new valid links appeared within the wait period.")
-        error.log_error(classe, date, context="Timeout waiting for new download links")
+        error.log(classe, date, context="Timeout waiting for new download links")
         return []
 
 def download_each_link(driver, downloadLinks, download_dir, classe, date):
@@ -128,7 +122,7 @@ def download_each_link(driver, downloadLinks, download_dir, classe, date):
             return download_button
         
         except:
-            error.log_error(classe, date, context="getDownloadButton")  # Fixed context name
+            error.log(classe, date, context="getDownloadButton")  # Fixed context name
             reset_window_and_frame(driver)
             raise
 
@@ -140,12 +134,12 @@ def download_each_link(driver, downloadLinks, download_dir, classe, date):
             if count_files(download_dir) == sizeBeforeDownload + 1:
                 global files_properly_downloaded
                 files_properly_downloaded += 1
-                print(f"-> files_properly_downloaded: {files_properly_downloaded}")
+                print(f"{files_properly_downloaded} files downloaded")
                 return True
         
         # Log error if the file is not downloaded within the timeout
         context = "is_file_downloaded"  # Fixed context name
-        error.log_error(classe, date, context)
+        error.log(classe, date, context)
         return False
 
     def reset_window_and_frame(driver):
@@ -155,33 +149,36 @@ def download_each_link(driver, downloadLinks, download_dir, classe, date):
 
     try:
         if len(downloadLinks) != 0:
+            success = True
             for index, link in enumerate(downloadLinks, start=1):
                 link.click()
                 #print(f"Link {index} clicked")
 
                 # It opens up a new window, so go to that window
                 driver.switch_to.window(driver.window_handles[-1])
-                print(f"Switched to new window")
 
                 # Store how many files I have before downloading to check later if the download that is about to happen was successful
                 initialSize = count_files(download_dir)
-                print(f"-> size before clicking the download button: {initialSize} files")
                 
                 # Find and click the download button
                 download_button = getDownloadButton(driver, classe, date)
                 download_button.click()
-                print(f"Download button clicked")
                 
                 # Wait for the file to be downloaded
                 if not is_file_downloaded(download_dir, sizeBeforeDownload=initialSize, timeout=30, classe=classe, date=date):
-                    error.log_error(classe, date, context="download_each_link")  # Fixed context name
+                    success = False
+                    error.log(classe, date, context="download_each_link")  # Fixed context name
 
                 # Close the current window and switch back to the main window to access other links
                 reset_window_and_frame(driver)
+            if success:
+                print("-> ✅ All page`s files downloaded.")
+            else:
+                print("-> Some files failed to download.")
 
     except Exception:
         reset_window_and_frame(driver)
-        error.log_error(classe, date, context="download_each_link")  # Fixed context name
+        error.log(classe, date, context="download_each_link")  # Fixed context name
         raise
 
 def more_download_links_pages(driver):
@@ -211,7 +208,7 @@ def download(driver, download_dir, classe, date):
         try:
             # Get the download links and names
             downloadLinks, linkNames = get_download_links_and_names(driver, linkNames, classe, date)
-            print(f"found {len(linkNames)} links: {linkNames}")
+            #print(f"found {len(linkNames)} links: {linkNames}")
             
             # Get the number of expected downloads and the full message text
             expectedDownloads = get_expected_downloads(driver, expectedDownloads[1], classe, date)
@@ -219,7 +216,7 @@ def download(driver, download_dir, classe, date):
 
             # Check if the expected number of downloads matches the actual number of links found
             if len(downloadLinks) != expectedDownloads[0]:
-                error.log_error(classe, date, context="download -> found links dont match expected")
+                error.log(classe, date, context="download -> found links dont match expected")
 
             # Download each link
             download_each_link(driver, downloadLinks, download_dir, classe, date)

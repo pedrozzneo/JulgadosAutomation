@@ -1,11 +1,11 @@
 error_log = []
 
-def log_error(classe, date, context):
+def log(classe, date, context):
     # Logs an error with details about the class and date.
     error_log.append(f"Class: {classe}, Date: {date}, Context: {context}")
     print(f"⚠️ {context}")
 
-def display_error_log():
+def display():
     # Displays the error log in a numbered format.
     if not error_log:
         print("No errors logged.")
