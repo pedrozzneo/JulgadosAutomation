@@ -88,16 +88,16 @@ def main():
             except Exception:
                 # Reset everything
                 driver = d.reset(driver, download_dir)
-           
-            try:
-                # Display the error log 
-                error.display()
+        try:
+            # Display the error log 
+            error.display()
 
-                # Try to solve the errors in the error log 
-                scrape_errors(driver, download_dir)
-            except Exception:
-                # Reset everything
-                driver = d.reset(driver, download_dir)
+            # Try to solve the errors in the error log 
+            scrape_errors(driver, download_dir)
+        except Exception:
+            # Reset everything
+            driver = d.reset(driver, download_dir)   
+        
     
     # Clean up empty folders (needs checking if it works)
     # files.delete_empty_dirs(download_dir)
