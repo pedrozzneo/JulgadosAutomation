@@ -54,7 +54,6 @@ def scrape(driver, classe, date, download_dir):
 def main():
     # List all classes to be searched
     classes = ["Ação Civil Pública", "Ação Civil de Improbidade Administrativa", "Ação Civil Coletiva", "Ação Popular", "Mandado de Segurança Coletivo", "Usucapião"]
-    classes = ["Ação Civil de Improbidade Administrativa", "Ação Civil Coletiva", "Ação Popular", "Mandado de Segurança Coletivo", "Usucapião"]
     print(f"classes: {classes}")
 
     # List all dates to be searched
@@ -71,7 +70,7 @@ def main():
     # Set the WebDriver
     driver = d.set(download_dir)
     driver.get("https://esaj.tjsp.jus.br/cjpg")
-    #driver.maximize_window()
+    driver.maximize_window()
 
     # Loop through each class and date
     for classe in classes:
