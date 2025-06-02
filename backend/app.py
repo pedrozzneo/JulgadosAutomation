@@ -1,30 +1,41 @@
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service as ChromeService
-from webdriver_manager.chrome import ChromeDriverManager
 from datetime import datetime, timedelta
 import form 
 import link
 import files
 import error 
+import driver as d
+import time
 
-def set_driver(download_dir):
-    # Set Chrome options
-    options = webdriver.ChromeOptions()
-    options.add_experimental_option('prefs', {
-        "download.default_directory": download_dir,
-        "download.prompt_for_download": False,
-    })
-    #options.add_argument("--headless")
+def scrape_errors(driver, download_dir):
+    try:
+        # Display the error log 
+        # error.display()
 
-    # Start WebDriver
-    driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
-    return driver
+        # Know how many errors are in the error log
+        quantity = len(error.errors)
+        print(f"Number of errors to solve: {quantity}")
+        
+        # If there are no errors, just return
+        if quantity == 0:
+            return
+        
+        # Give it 3 times the len of error log to solve the errors
+        for i in range(quantity):
+            # Remove the first item to try to solve it and also recycle the error log
+            classe = error.errors[i].get("classe")
+            date = error.errors[i].get("date")
+            
+            # Split to extract class and date
+            print(f"Trying to solve: {classe} on {date}")
+
+            # Try to solve
+            scrape(driver, classe, date, download_dir)
+            time.sleep(5)  # Sleep for a second to avoid overwhelming the server
+    except:
+        raise
 
 def scrape(driver, classe, date, download_dir):
     try:
-        # Calculate the date for the current iteration and show important information
-        print(f"\n{classe.upper()} ON {date.upper()}: \n")
-
         # Fill out forms's fillters
         form.fill_filters(driver, classe, date)  
 
@@ -36,34 +47,14 @@ def scrape(driver, classe, date, download_dir):
             # Move the downloaded files to the respective folder or delete them if they already exist
             files.move_files(download_dir, classe, date, link.files_properly_downloaded)
 
-    except Exception:
+    except Exception as e:
+        print(f"⚠️ Error while scraping {classe} on {date}: {e}")
         raise
-
-def iterate_error_log(driver, download_dir):
-    # Display the error log
-    error.display_error_log()
-
-    # Give it 3 times the len of error log to solve the errors
-    for i in range(len(error.error_log) * 3):
-        # Display the error log every 20 iterations
-        if i % 20 == 0:
-            error.display_error_log()
-        
-        # Remove the first item to try to solve it and also recycle the error log
-        entry = error.error_log.pop(0) 
-        
-        # Split to extract class and date
-        parts = entry.split(", ")
-        classe = parts[0].split(": ")[1]
-        date = parts[1].split(": ")[1]
-        print(f"Trying to solve: {classe} on {date}")
-
-        # Try to solve
-        scrape(driver, classe, date, download_dir)
 
 def main():
     # List all classes to be searched
     classes = ["Ação Civil Pública", "Ação Civil de Improbidade Administrativa", "Ação Civil Coletiva", "Ação Popular", "Mandado de Segurança Coletivo", "Usucapião"]
+    #classes = ["Ação Civil Coletiva", "Ação Popular", "Mandado de Segurança Coletivo", "Usucapião"]
     print(f"classes: {classes}")
 
     # List all dates to be searched
@@ -78,7 +69,7 @@ def main():
     download_dir = r"C:\Users\nikao\Documents\pdfs"
 
     # Set the WebDriver
-    driver = set_driver(download_dir)
+    driver = d.set(download_dir)
     driver.get("https://esaj.tjsp.jus.br/cjpg")
     #driver.maximize_window()
 
@@ -89,22 +80,24 @@ def main():
                 # Calculate the date for the current iteration and format it
                 date = (startingDate + timedelta(days=i)).strftime("%d/%m/%Y")
                 
+                # Display the class and date being scraped
+                print(f"\n{classe.upper()} ON {date.upper()}: \n")
+
                 # Scrape the current class and date
                 scrape(driver, classe, date, download_dir)
-
-                # Display the error log every 20 iterations
-                if i % 20 == 0:
-                    error.display_error_log()
-
             except Exception:
                 # Reset everything
-                driver.quit()
-                driver = set_driver(download_dir)
-                driver.get("https://esaj.tjsp.jus.br/cjpg")
-                print("reset") 
-                
-        # Try to solve the error in the error log
-        iterate_error_log(driver, download_dir)
+                driver = d.reset(driver, download_dir)
+           
+            try:
+                # Display the error log 
+                error.display()
+
+                # Try to solve the errors in the error log 
+                scrape_errors(driver, download_dir)
+            except Exception:
+                # Reset everything
+                driver = d.reset(driver, download_dir)
     
     # Clean up empty folders (needs checking if it works)
     # files.delete_empty_dirs(download_dir)
