@@ -58,7 +58,7 @@ def main():
     print(f"classes: {classes}")
 
     # List all dates to be searched
-    startingDate = datetime.strptime("01/01/2019", "%d/%m/%Y")
+    startingDate = datetime.strptime("08/01/2019", "%d/%m/%Y")
     endDate = datetime.strptime("31/12/2019", "%d/%m/%Y")
     interval = (endDate - startingDate).days
     print(f"dates: from {startingDate} to {endDate}")
@@ -86,18 +86,18 @@ def main():
             except Exception:
                 # Reset everything
                 driver = d.reset(driver, download_dir)
-           
-            try:
+            finally:
                 # Display the error log 
                 error.display()
+                
+        try:
+            # Try to solve the errors in the error log 
+            scrape_errors(driver, download_dir)
+        except Exception:
+            # Reset everything
+            driver = d.reset(driver, download_dir)
 
-                # Try to solve the errors in the error log 
-                scrape_errors(driver, download_dir)
-            except Exception:
-                # Reset everything
-                driver = d.reset(driver, download_dir)
-    
-    # Clean up empty folders (needs checking if it works)
+    # # Clean up empty folders (needs checking if it works)
     # files.delete_empty_dirs(download_dir)
 
 main()
