@@ -1,7 +1,7 @@
 from fill_filters import fill_filters
 from download import download
 from files import move_files
-from error import error_log, display, log
+from error import errors, display, log
 from app import ThereAreFileLinks
 from error import error
 
@@ -15,7 +15,7 @@ while error.error_log:
         except Exception as e:
             print(f"Error displaying error log: {e}")
                 
-    entry = error_log.pop(0)  # Remove the first item
+    entry = errors.pop(0)  # Remove the first item
     # Example format: "Class: Usucapiao, Date: 2025-04-15, Context: fill_filters: TimeOutException"
     
     # Split and extract

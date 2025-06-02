@@ -17,6 +17,9 @@ month_dict = {
     "12": "Dezembro"
 }
 
+def count_files(download_dir):
+    return sum(len(files) for _, _, files in os.walk(download_dir))
+
 def get_month_name(date_str):
     # Converts month number to month name
     month_num = date_str[3:5]

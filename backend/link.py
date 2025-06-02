@@ -4,8 +4,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 import time
 import re
-import os
 import error as error
+import files
 
 files_properly_downloaded = 0
 
@@ -95,51 +95,45 @@ def get_expected_downloads(driver, previousValue, classe, date):
             raise Exception("Failed to extract numbers from download message")
 
     except Exception as e:
-        error.log(None, None, context=f"Error in get_expected_downloads: {str(e)}")
+        error.log(classe, date, context=f"Error in get_expected_downloads: {str(e)}")
         raise
-    
-    except TimeoutException:
-        print("🔴 Timeout: No new valid links appeared within the wait period.")
-        error.log(classe, date, context="Timeout waiting for new download links")
-        return []
 
 def download_each_link(driver, downloadLinks, download_dir, classe, date):
-    def count_files(download_dir):
-        return sum(len(files) for _, _, files in os.walk(download_dir))
-
     def getDownloadButton(driver, classe, date):
         try:
             # Switch to the iframe that contains the download button
-            iframe = WebDriverWait(driver, 10).until(
+            iframe = WebDriverWait(driver, 30).until(
                 EC.presence_of_element_located((By.TAG_NAME, "iframe"))
             )
             driver.switch_to.frame(iframe)
             
             # Locate the download button within the iframe
-            download_button = WebDriverWait(driver, 10).until(
+            download_button = WebDriverWait(driver, 30).until(
                 EC.element_to_be_clickable((By.ID, "download"))
             )
             return download_button
         
-        except:
-            error.log(classe, date, context="getDownloadButton")  # Fixed context name
+        except Exception as e:
+            error.log(classe, date, context=f"getDownloadButton: {e}")  # Fixed context name
             reset_window_and_frame(driver)
             raise
 
-    def is_file_downloaded(download_dir, sizeBeforeDownload, timeout=30, classe=None, date=None):
+    def is_file_downloaded(download_dir, sizeBeforeDownload, classe, date):
         # Track how long its been since I start comparing, so I can stop if it takes too long
         start_time = time.time()
-    
+        
+        # Set a timeout for the download check
+        timeout = 30
+
         while time.time() - start_time < timeout:
-            if count_files(download_dir) == sizeBeforeDownload + 1:
+            if files.count_files(download_dir) == sizeBeforeDownload + 1:
                 global files_properly_downloaded
                 files_properly_downloaded += 1
                 print(f"{files_properly_downloaded} files downloaded")
                 return True
         
         # Log error if the file is not downloaded within the timeout
-        context = "is_file_downloaded"  # Fixed context name
-        error.log(classe, date, context)
+        error.log(classe, date, context= "is_file_downloaded")
         return False
 
     def reset_window_and_frame(driver):
@@ -158,37 +152,31 @@ def download_each_link(driver, downloadLinks, download_dir, classe, date):
                 driver.switch_to.window(driver.window_handles[-1])
 
                 # Store how many files I have before downloading to check later if the download that is about to happen was successful
-                initialSize = count_files(download_dir)
+                initialSize = files.count_files(download_dir)
                 
                 # Find and click the download button
                 download_button = getDownloadButton(driver, classe, date)
                 download_button.click()
                 
                 # Wait for the file to be downloaded
-                if not is_file_downloaded(download_dir, sizeBeforeDownload=initialSize, timeout=30, classe=classe, date=date):
+                if not is_file_downloaded(download_dir, initialSize, classe, date):
                     success = False
-                    error.log(classe, date, context="download_each_link")  # Fixed context name
+                    print("-> Some files failed to download.")
 
                 # Close the current window and switch back to the main window to access other links
                 reset_window_and_frame(driver)
             if success:
-                print("-> ✅ All page`s files downloaded.")
-            else:
-                print("-> Some files failed to download.")
-
+                print("-> ✅ All page's files downloaded.")
     except Exception:
         reset_window_and_frame(driver)
-        error.log(classe, date, context="download_each_link")  # Fixed context name
         raise
 
 def more_download_links_pages(driver):
     try:
-        time.sleep(5)
         # Try to locate the "Próxima página" link
-        next_page_link = WebDriverWait(driver, 10).until(
+        next_page_link = WebDriverWait(driver, 30).until(
             EC.presence_of_element_located((By.XPATH, "//a[@title='Próxima página' and contains(@class, 'esajLinkLogin')]"))
         )
-        print("-> Found 'Próxima página' link.")
         next_page_link.click()
         print("-> advance to the next page")
         return True
