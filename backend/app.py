@@ -54,19 +54,16 @@ def scrape(driver, classe, date, download_dir):
 def main():
     # List all classes to be searched
     classes = ["Ação Civil Pública", "Ação Civil de Improbidade Administrativa", "Ação Civil Coletiva", "Ação Popular", "Mandado de Segurança Coletivo", "Usucapião"]
-    #classes = ["Ação Civil Coletiva", "Ação Popular", "Mandado de Segurança Coletivo", "Usucapião"]
     print(f"classes: {classes}")
 
     # List all dates to be searched
-    startingDate = datetime.strptime("01/01/2020", "%d/%m/%Y")
-    endDate = datetime.strptime("31/12/2020", "%d/%m/%Y")
+    startingDate = datetime.strptime("01/01/2021", "%d/%m/%Y")
+    endDate = datetime.strptime("31/12/2021", "%d/%m/%Y")
+    interval = (endDate - startingDate).days
     print(f"dates: from {startingDate} to {endDate}")
 
-    # Calculate the interval between start_date and end_date
-    interval = (endDate - startingDate).days
-    
-    # Temporary download directory before being moved to the specific date folder
-    download_dir = r"C:\Users\nikao\Documents\pdfs"
+    # Set the download directory
+    download_dir = r"G:\Meu Drive\Julgados"
 
     # Set the WebDriver
     driver = d.set(download_dir)
@@ -88,18 +85,18 @@ def main():
             except Exception:
                 # Reset everything
                 driver = d.reset(driver, download_dir)
+            finally:
+                # Display the error log 
+                error.display()
+                
         try:
-            # Display the error log 
-            error.display()
-
             # Try to solve the errors in the error log 
             scrape_errors(driver, download_dir)
         except Exception:
             # Reset everything
-            driver = d.reset(driver, download_dir)   
-        
-    
-    # Clean up empty folders (needs checking if it works)
+            driver = d.reset(driver, download_dir)
+
+    # # Clean up empty folders (needs checking if it works)
     # files.delete_empty_dirs(download_dir)
 
 main()

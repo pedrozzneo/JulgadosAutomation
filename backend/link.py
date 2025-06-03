@@ -156,6 +156,12 @@ def download_each_link(driver, downloadLinks, download_dir, classe, date):
                 
                 # Find and click the download button
                 download_button = getDownloadButton(driver, classe, date)
+                
+                # Skip to the next link if the button is not found
+                if not download_button:
+                    continue  
+                
+                # Click the download button
                 download_button.click()
                 
                 # Wait for the file to be downloaded
