@@ -7,12 +7,11 @@ import driver as d
 import time
 
 result = None
+download_dir = r"C:\Users\nikao\Documents\Code\JulgadosAutomation\others\pdfs"
+driver = d.set(download_dir)
 
-def scrape_errors(driver, download_dir):
+def solve_errors(driver, download_dir):
     try:
-        # Display the error log 
-        # error.display()
-
         # Know how many errors are in the error log
         quantity = len(error.errors)
         print(f"Number of errors to solve: {quantity}")
@@ -31,23 +30,43 @@ def scrape_errors(driver, download_dir):
             print(f"Trying to solve: {classe} on {date}")
 
             # Try to solve
-            scrape(driver, classe, date, download_dir)
-            time.sleep(5)  # Sleep for a second to avoid overwhelming the server
+            scrape(classe, date, download_dir)
     except:
         raise
 
-def scrape(driver, classe, date, download_dir):
+def scrape(classe, date, download_dir):
     try:
+        # alawys keep track of this WebElement to tell wheter we have or not downloadLinks to process
         global result
+
+        # alawys keep track of the driver because the resets (changes it) can be perpetuated across functions
+        global driver
+
+        # Track the time from filling the forms to processing the results
+        timeBeforeForms = datetime.now()
 
         # Fill out forms's fillters
         form.fill_filters(driver, classe, date)  
 
+        # Collect the result if we have or not download links to process
         result = link.present(driver, classe, date, result)
+        
+        # Finally find out the time it took to process the forms
+        timeAfterResult = datetime.now()
+        timeTaken = timeAfterResult - timeBeforeForms
 
-        # Situation with download Links
+        # If it took too long, reset the driver and try again untill it works out as it causes bug
+        if timeTaken > timedelta(seconds=5):
+            print(f"-> Forms took too long to process: {timeTaken}. Resetting driver.")
+            driver = d.reset(driver, download_dir)
+            scrape(classe, date, download_dir) 
+            return
+        else:
+            print(f"-> Forms processed in {timeTaken}")
+        
+        # Situation with links to download
         if result.tag_name == "a":
-            # Download each found link
+            # Download the links
             link.download(driver, download_dir, classe, date)
 
             # Move the downloaded files to the respective folder or delete them if they already exist
@@ -57,7 +76,6 @@ def scrape(driver, classe, date, download_dir):
 
     except Exception as e:
         result = None
-        print(f"⚠️ Error while scraping {classe} on {date}: {e}")
         raise
 
 def main():
@@ -67,7 +85,7 @@ def main():
     print(f"classes: {classes}")
 
     # List all dates to be searched
-    startingDate = datetime.strptime("08/01/2019", "%d/%m/%Y")
+    startingDate = datetime.strptime("01/01/2019", "%d/%m/%Y")
     endDate = datetime.strptime("31/12/2019", "%d/%m/%Y")
     interval = (endDate - startingDate).days
     print(f"dates: from {startingDate} to {endDate}")
@@ -75,10 +93,9 @@ def main():
     # Set the download directory
     download_dir = r"C:\Users\nikao\Documents\Code\JulgadosAutomation\others\pdfs"
 
-    # Set the WebDriver
-    driver = d.set(download_dir)
+    # Acess the main page
+    global driver
     driver.get("https://esaj.tjsp.jus.br/cjpg")
-    #driver.maximize_window()
 
     # Loop through each class and date
     for classe in classes:
@@ -91,7 +108,7 @@ def main():
                 print(f"\n{classe.upper()} ON {date.upper()}: \n")
 
                 # Scrape the current class and date
-                scrape(driver, classe, date, download_dir)
+                scrape(classe, date, download_dir)
             except Exception:
                 # Reset everything
                 driver = d.reset(driver, download_dir)
@@ -101,7 +118,7 @@ def main():
                 
         try:
             # Try to solve the errors in the error log 
-            scrape_errors(driver, download_dir)
+            solve_errors(driver, download_dir)
         except Exception:
             # Reset everything
             driver = d.reset(driver, download_dir)
