@@ -28,15 +28,9 @@ def fill_classe(driver, classe, date):
         )
         checkboxClass.click()
 
-        try:
-            button = driver.find_element(By.XPATH, '//input[@value="Selecionar"]')
-            print("Found by XPath (value)")
-            # Click using JavaScript
-            driver.execute_script("arguments[0].click();", button)
-            print("Clicked using JavaScript")
-        except Exception as e:
-            print("Button not found by XPath (value)", e)
-
+        button = driver.find_element(By.XPATH, '//input[@value="Selecionar"]')
+        driver.execute_script("arguments[0].click();", button)
+    
     except Exception as e:
         error.log(classe, date, context= "forms -> fill_classe")
         raise
