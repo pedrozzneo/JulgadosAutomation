@@ -6,6 +6,8 @@ import error
 import driver as d
 import time
 
+result = None
+
 def scrape_errors(driver, download_dir):
     try:
         # Display the error log 
@@ -36,18 +38,25 @@ def scrape_errors(driver, download_dir):
 
 def scrape(driver, classe, date, download_dir):
     try:
+        global result
+
         # Fill out forms's fillters
         form.fill_filters(driver, classe, date)  
 
-        # Check if there are links for download
-        if link.present(driver, classe, date): 
+        result = link.present(driver, classe, date, result)
+
+        # Situation with download Links
+        if result.tag_name == "a":
             # Download each found link
             link.download(driver, download_dir, classe, date)
 
             # Move the downloaded files to the respective folder or delete them if they already exist
             files.move_files(download_dir, classe, date, link.files_properly_downloaded)
+        else:
+            print("NO download links")
 
     except Exception as e:
+        result = None
         print(f"⚠️ Error while scraping {classe} on {date}: {e}")
         raise
 

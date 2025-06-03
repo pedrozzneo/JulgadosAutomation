@@ -99,6 +99,7 @@ def fill_assunto(driver, classe, date):
 
 def fill_filters(driver, classe, date):
     try:
+        print("-> Filling form...")
         fill_classe(driver, classe, date)
         fill_date(driver, classe, date)
         if classe == "Usucapião":  # Only for "Usucapião" class
