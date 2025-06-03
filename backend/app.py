@@ -65,7 +65,7 @@ def main():
     interval = (endDate - startingDate).days
     
     # Temporary download directory before being moved to the specific date folder
-    download_dir = r"C:\Users\Marlabs\Documents\pdfs"
+    download_dir = r"G:\Meu Drive\Julgados"
 
     # Set the WebDriver
     driver = d.set(download_dir)
