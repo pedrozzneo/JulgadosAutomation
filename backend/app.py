@@ -64,7 +64,7 @@ def main():
     print(f"dates: from {startingDate} to {endDate}")
 
     # Set the download directory
-    download_dir = r"C:\Users\nikao\Documents\Code\JulgadosAutomation\others\pdfs"
+    download_dir = r"G:\Meu Drive\Julgados"
 
     # Set the WebDriver
     driver = d.set(download_dir)
