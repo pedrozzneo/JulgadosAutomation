@@ -37,7 +37,7 @@ def present(driver, classe, date):
             print("❌ Links to download")  
             return False
     except Exception as e:
-        error.log(classe, date, context=f"link -> present: {e}")   
+        error.log(classe, date, context=f"link -> present")   
         raise
 
 def get_download_links_and_names(driver, previousNames, classe, date):
@@ -63,7 +63,7 @@ def get_download_links_and_names(driver, previousNames, classe, date):
         downloadLinks, currentNames = WebDriverWait(driver, 80).until(valid_links_changed)
         return downloadLinks, currentNames
     except Exception as e:
-        error.log(classe, date, context=f"get_download_links: {e}")
+        error.log(classe, date, context=f"get_download_links")
         raise
 
 def get_expected_downloads(driver, previousValue, classe, date):
@@ -95,7 +95,7 @@ def get_expected_downloads(driver, previousValue, classe, date):
             raise Exception("Failed to extract numbers from download message")
 
     except Exception as e:
-        error.log(classe, date, context=f"Error in get_expected_downloads: {str(e)}")
+        error.log(classe, date, context=f"Error in get_expected_downloads")
         raise
 
 def download_each_link(driver, downloadLinks, download_dir, classe, date):
@@ -114,7 +114,7 @@ def download_each_link(driver, downloadLinks, download_dir, classe, date):
             return download_button
         
         except Exception as e:
-            error.log(classe, date, context=f"getDownloadButton: {e}")  # Fixed context name
+            error.log(classe, date, context=f"getDownloadButton")  # Fixed context name
             reset_window_and_frame(driver)
             raise
 
@@ -156,6 +156,12 @@ def download_each_link(driver, downloadLinks, download_dir, classe, date):
                 
                 # Find and click the download button
                 download_button = getDownloadButton(driver, classe, date)
+                
+                # Skip to the next link if the button is not found
+                if not download_button:
+                    continue  
+                
+                # Click the download button
                 download_button.click()
                 
                 # Wait for the file to be downloaded

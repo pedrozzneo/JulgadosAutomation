@@ -52,13 +52,13 @@ def move_files(download_dir, classe, date, quantityOfFiles):
 
     except FileNotFoundError as e:
         error.log(classe, date, "move_files: File not found")
-        print(f"FileNotFoundError: {e}")
+        print(f"FileNotFoundError")
     except PermissionError as e:
         error.log(classe, date, "move_files: Permission error")
-        print(f"PermissionError: {e}")
+        print(f"PermissionError")
     except Exception as e:
         error.log(classe, date, "move_files: General error")
-        print(f"Error while moving files: {e}")
+        print(f"Error while moving files")
 
 def delete_empty_dirs(download_dir, current_level=1, max_level=5):
     if current_level > max_level:
