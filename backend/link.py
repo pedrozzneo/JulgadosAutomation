@@ -29,7 +29,7 @@ def present(driver, classe, date, previousResult):
             WebDriverWait(driver, 10).until(EC.staleness_of(previousResult))
             
         # Find out if we have links or message (represents absence of links)
-        return WebDriverWait(driver, 5).until(message_or_link)  
+        return WebDriverWait(driver, 10).until(message_or_link)  
     except Exception as e:
         error.log(classe, date, context=f"link -> present")   
         raise
@@ -157,6 +157,7 @@ def download_each_link(driver, downloadLinks, download_dir, classe, date):
                 download_button.click()
                 
                 # Wait for the file to be downloaded
+                print("checking if the file was downloaded...")
                 if not is_file_downloaded(download_dir, initialSize, classe, date):
                     success = False
                     print("-> Some files failed to download.")
