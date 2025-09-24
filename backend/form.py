@@ -43,7 +43,7 @@ def fill_date(driver, classe, date):
         )
         start_date.clear()
         start_date.send_keys(date)
-
+        
         end_date = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.ID, "iddadosConsulta.dtFim"))
         )

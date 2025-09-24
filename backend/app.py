@@ -55,7 +55,7 @@ def scrape(classe, date, download_dir):
         timeTaken = timeAfterResult - timeBeforeForms
 
         # If it took too long, reset the driver and try again untill it works out as it causes bug
-        if timeTaken > timedelta(seconds=10):
+        if timeTaken > timedelta(seconds=10) and classe != "Usucapião":
             print(f"-> Forms took too long to process: {timeTaken}. Resetting driver.")
             driver = d.reset(driver, download_dir)
             scrape(classe, date, download_dir) 
@@ -80,18 +80,17 @@ def scrape(classe, date, download_dir):
 def main():
     # List all classes to be searched
     classes = ["Ação Civil Pública", "Ação Civil de Improbidade Administrativa", "Ação Civil Coletiva", "Ação Popular", "Mandado de Segurança Coletivo", "Usucapião"]
-    classes = ["Ação Civil Pública", "Ação Civil de Improbidade Administrativa", "Ação Civil Coletiva", "Ação Popular", "Mandado de Segurança Coletivo"]
     
     print(f"classes: {classes}")
 
     # List all dates to be searched
-    startingDate = datetime.strptime("07/01/2015", "%d/%m/%Y")
-    endDate = datetime.strptime("31/12/2015", "%d/%m/%Y")
+    startingDate = datetime.strptime("01/06/2025", "%d/%m/%Y")
+    endDate = datetime.strptime("31/08/2025", "%d/%m/%Y")
     interval = (endDate - startingDate).days
     print(f"dates: from {startingDate} to {endDate}")
 
     # Set the download directory
-    download_dir = r"C:\Users\nikao\Desktop\temp"
+    download_dir = r"C:\Users\nikao\Documents\Code\JulgadosAutomation\others\temp"
 
     # Acess the main page
     global driver
