@@ -6,7 +6,7 @@ import error
 import driver as d
 
 result = None
-download_dir = r"C:\Users\nikao\Desktop\temp"
+download_dir = r"G:\Meu Drive\JulgadosBackup\moveDir"
 driver = d.set(download_dir)
 
 def solve_errors(driver, download_dir):
@@ -84,13 +84,13 @@ def main():
     print(f"classes: {classes}")
 
     # List all dates to be searched
-    startingDate = datetime.strptime("01/06/2025", "%d/%m/%Y")
-    endDate = datetime.strptime("31/08/2025", "%d/%m/%Y")
+    startingDate = datetime.strptime("30/09/2025", "%d/%m/%Y")
+    endDate = datetime.strptime("31/10/2025", "%d/%m/%Y")
     interval = (endDate - startingDate).days
     print(f"dates: from {startingDate} to {endDate}")
 
     # Set the download directory
-    download_dir = r"C:\Users\nikao\Documents\Code\JulgadosAutomation\others\temp"
+    download_dir = r"G:\Meu Drive\JulgadosBackup\moveDir"
 
     # Acess the main page
     global driver
@@ -102,27 +102,25 @@ def main():
             try:
                 # Calculate the date for the current iteration and format it
                 date = (startingDate + timedelta(days=i)).strftime("%d/%m/%Y")
-                
+
                 # Display the class and date being scraped
                 print(f"\n{classe.upper()} ON {date.upper()}: \n")
 
                 # Scrape the current class and date
                 scrape(classe, date, download_dir)
+                
             except Exception:
                 # Reset everything
                 driver = d.reset(driver, download_dir)
+
             finally:
-                # Display the error log 
+                # Clear the download dir and display the errors so far
+                files.clear_directory(download_dir)
                 error.display()
-                
         try:
             # Try to solve the errors in the error log 
             solve_errors(driver, download_dir)
         except Exception:
             # Reset everything
             driver = d.reset(driver, download_dir)
-
-    # # Clean up empty folders (needs checking if it works)
-    # files.delete_empty_dirs(download_dir)
-
 main()
